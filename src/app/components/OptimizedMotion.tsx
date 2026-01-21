@@ -39,7 +39,7 @@ export function OptimizedMotion({
   children,
   className,
   ...props
-}: React.ComponentProps<typeof motion.div>) {
+}: React.ComponentProps<typeof motion.div> & { children: React.ReactNode }) {
   const reducedMotion = useReducedMotion();
 
   if (reducedMotion) {

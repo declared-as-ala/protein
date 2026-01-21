@@ -23,9 +23,9 @@ const nextConfig = {
   },
   compress: true,
   poweredByHeader: false,
-  experimental: {
-    optimizeCss: true,
-  },
+  // experimental: {
+  //   optimizeCss: true, // Disabled - requires critters package
+  // },
 }
 
 module.exports = nextConfig

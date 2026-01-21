@@ -1,11 +1,11 @@
 'use client';
 
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { ThemeProvider as NextThemesProvider, type ThemeProviderProps as NextThemesProviderProps } from 'next-themes';
 import { type ReactNode } from 'react';
 
 interface ThemeProviderProps {
   children: ReactNode;
-  attribute?: string;
+  attribute?: NextThemesProviderProps['attribute'];
   defaultTheme?: string;
   enableSystem?: boolean;
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -110,11 +111,20 @@ export function HeroSlider() {
                 transition={{ delay: 0.9, duration: 0.6 }}
                 className="flex flex-wrap gap-4"
               >
-                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base">
-                  {slides[currentSlide].cta}
+                <Button 
+                  size="lg" 
+                  className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base"
+                  asChild
+                >
+                  <Link href="/shop">{slides[currentSlide].cta}</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base">
-                  Voir Catégories
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base"
+                  asChild
+                >
+                  <Link href="/shop">Voir Catégories</Link>
                 </Button>
               </motion.div>
             </motion.div>

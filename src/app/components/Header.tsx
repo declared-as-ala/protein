@@ -104,14 +104,16 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 className="relative hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setCartOpen(true)}
+                asChild
               >
-                <ShoppingCart className="h-5 w-5" />
-                {cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemsCount}
-                  </span>
-                )}
+                <Link href="/cart">
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </Link>
               </Button>
 
               {/* Mobile Menu Button */}

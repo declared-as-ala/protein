@@ -27,12 +27,12 @@ const ScrollToTop = dynamic(() => import('@/app/components/ScrollToTop').then(mo
 });
 
 export default function Home() {
-  // Filter products by category
+  // Filter products by category - limit for mobile performance
   const newProducts = productsData.filter((_, index) => index < 4);
   const bestSellers = productsData.filter(p => 
     p.name.includes('PURE WHEY') || p.name.includes('ISO') || p.name.includes('GOLD')
   ).slice(0, 4);
-  const packs = productsData.filter(p => p.category === 'Packs');
+  const packs = productsData.filter(p => p.category === 'Packs').slice(0, 4);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">

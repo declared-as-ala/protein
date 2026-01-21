@@ -65,20 +65,20 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8 flex-1 overflow-visible">
-              <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 ACCUEIL
               </Link>
               <ProductsDropdown />
-              <Link href="/packs" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link href="/packs" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 PACKS
               </Link>
-              <Link href="/blog" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link href="/blog" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 BLOG
               </Link>
-              <Link href="/contact" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link href="/contact" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 CONTACT
               </Link>
-              <Link href="/about" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link href="/about" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 QUI SOMMES NOUS
               </Link>
             </nav>

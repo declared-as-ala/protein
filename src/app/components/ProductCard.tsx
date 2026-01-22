@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ShoppingCart, Star } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
@@ -56,7 +57,7 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
 
       {/* Image Container */}
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
-        <a href={product.link || '#'}>
+        <Link href={`/products/${product.id}`}>
           {product.image ? (
             <Image
               src={product.image}
@@ -72,7 +73,7 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
               <ShoppingCart className="h-12 w-12 text-gray-400" />
             </div>
           )}
-        </a>
+        </Link>
 
         {/* Quick Add to Cart - Shows on hover */}
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -91,11 +92,23 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
       {/* Content */}
       <div className="p-4">
         {/* Product Name */}
-        <a href={product.link || '#'} className="block mb-2">
+        <Link href={`/products/${product.id}`} className="block mb-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
             {product.name}
           </h3>
-        </a>
+        </Link>
+
+        {/* Nutrition Highlights - Premium Feature */}
+        <div className="flex items-center gap-3 mb-3 text-xs">
+          <div className="flex items-center gap-1 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-full">
+            <span className="font-semibold text-red-600 dark:text-red-400">25g</span>
+            <span className="text-gray-600 dark:text-gray-400">protéine</span>
+          </div>
+          <div className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 px-2 py-1 rounded-full">
+            <span className="font-semibold text-orange-600 dark:text-orange-400">120</span>
+            <span className="text-gray-600 dark:text-gray-400">cal</span>
+          </div>
+        </div>
 
         {/* Rating */}
         <div className="flex items-center gap-1 mb-3">
@@ -147,7 +160,7 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
     </>
   );
 
-  const className = "group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300";
+  const className = "group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500";
 
   if (isMobile) {
     return <div className={className}>{cardContent}</div>;

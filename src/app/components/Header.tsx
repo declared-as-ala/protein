@@ -8,9 +8,11 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { useTheme } from 'next-themes';
 import { AnnouncementBar } from './AnnouncementBar';
+import { PremiumTopBar } from './PremiumTopBar';
 import { ProductsDropdown } from './ProductsDropdown';
 import { CartDrawer } from './CartDrawer';
 import { useCart } from '@/app/contexts/CartContext';
+import { motion } from 'motion/react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,11 +23,14 @@ export function Header() {
 
   return (
     <>
+      {/* Premium Top Bar */}
+      <PremiumTopBar />
+      
       {/* Announcement Bar */}
       <AnnouncementBar />
       
       {/* Top Bar */}
-      <div className="bg-black text-white py-2 px-4">
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
         <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
           <div className="flex items-center gap-4">
             <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors">
@@ -35,36 +40,34 @@ export function Header() {
           </div>
           <div className="flex items-center gap-4">
             <span className="hidden md:inline">Livraison gratuite à partir de 300 DT</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-8 w-8 text-white hover:text-red-500 hover:bg-white/10"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
           </div>
         </div>
       </div>
 
       {/* Main Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0 relative h-12 w-auto mr-8">
-              <Image
-                src="https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp"
-                alt="Protein.tn"
-                width={150}
-                height={48}
-                className="h-12 w-auto"
-                priority
-              />
-            </Link>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="flex items-center"
+            >
+              <Link href="/" className="flex-shrink-0 relative h-12 w-auto mr-8 flex items-center">
+                <Image
+                  src="https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp"
+                  alt="Protein.tn"
+                  width={150}
+                  height={48}
+                  className="h-12 w-auto drop-shadow-lg"
+                  priority
+                />
+              </Link>
+            </motion.div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8 flex-1 overflow-visible">
+            <nav className="hidden lg:flex items-center space-x-8 flex-1 overflow-visible ml-8">
               <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 ACCUEIL
               </Link>
@@ -81,40 +84,60 @@ export function Header() {
               <Link href="/about" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
                 QUI SOMMES NOUS
               </Link>
+              <Link href="/calculators" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
+                CALCULATEURS
+              </Link>
             </nav>
 
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="relative w-full group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                 <Input
                   type="search"
                   placeholder="Rechercher un produit..."
-                  className="pl-10 w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-red-500"
+                  className="pl-12 pr-4 w-full h-11 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-red-500 rounded-xl shadow-sm transition-all"
                 />
               </div>
             </div>
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
                 <User className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-gray-100 dark:hover:bg-gray-800"
-                asChild
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
               >
-                <Link href="/cart">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {cartItemsCount}
-                    </span>
-                  )}
-                </Link>
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors"
+                  asChild
+                >
+                  <Link href="/cart">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartItemsCount > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
+                      >
+                        {cartItemsCount}
+                      </motion.span>
+                    )}
+                  </Link>
+                </Button>
+              </motion.div>
 
               {/* Mobile Menu Button */}
               <Button
@@ -162,6 +185,9 @@ export function Header() {
               </Link>
               <Link href="/about" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
                 QUI SOMMES NOUS
+              </Link>
+              <Link href="/calculators" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+                CALCULATEURS
               </Link>
               <Button variant="outline" className="w-full justify-start" size="lg">
                 <User className="h-5 w-5 mr-2" />

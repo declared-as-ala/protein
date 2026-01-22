@@ -1,11 +1,45 @@
+'use client';
+
 import Image from 'next/image';
-import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { motion } from 'motion/react';
 
 export function Footer() {
   return (
-    <footer id="contact" className="bg-gray-900 text-gray-300">
+    <footer id="contact" className="bg-gradient-to-b from-gray-900 via-gray-950 to-black text-gray-300 border-t border-gray-800">
+      {/* Premium Trust Section */}
+      <div className="border-b border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Shield, text: 'Paiement Sécurisé', color: 'text-green-400' },
+              { icon: Truck, text: 'Livraison Rapide', color: 'text-blue-400' },
+              { icon: Award, text: 'Produits Certifiés', color: 'text-yellow-400' },
+              { icon: Gift, text: 'Garantie Qualité', color: 'text-purple-400' },
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex flex-col items-center gap-3 p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
+                >
+                  <div className={`${item.color} p-3 rounded-full bg-gray-900`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-semibold text-center">{item.text}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
@@ -145,19 +179,25 @@ export function Footer() {
           <div className="space-y-6">
             {/* Newsletter */}
             <div>
-              <h3 className="font-semibold text-white mb-4">Abonnez-vous</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="h-5 w-5 text-yellow-400" />
+                <h3 className="font-bold text-white text-lg">Abonnez-vous</h3>
+              </div>
               <p className="text-sm text-gray-400 mb-4">
-                Recevez les dernières offres et nouveautés
+                Recevez les dernières offres exclusives et nouveautés
               </p>
-              <div className="flex gap-2">
+              <div className="space-y-3">
                 <Input
                   type="email"
                   placeholder="Votre email..."
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 h-12 rounded-xl"
                 />
-                <Button className="bg-red-600 hover:bg-red-700 px-6">
-                  OK
+                <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-12 font-bold rounded-xl shadow-lg">
+                  S'abonner
                 </Button>
+                <p className="text-xs text-gray-500">
+                  En vous abonnant, vous acceptez de recevoir nos offres par email
+                </p>
               </div>
             </div>
 
@@ -216,10 +256,17 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-800">
+      <div className="border-t border-gray-800/50 bg-black/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center text-sm text-gray-400">
-            © {new Date().getFullYear()} <span className="text-red-500 font-semibold">PROTEINE TUNISIE</span>. Tous droits réservés.
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left text-sm text-gray-400">
+              © {new Date().getFullYear()} <span className="text-red-500 font-bold">PROTEINE TUNISIE</span>. Tous droits réservés.
+            </div>
+            <div className="flex items-center gap-6 text-sm text-gray-400">
+              <a href="#" className="hover:text-red-500 transition-colors">Mentions légales</a>
+              <a href="#" className="hover:text-red-500 transition-colors">CGV</a>
+              <a href="#" className="hover:text-red-500 transition-colors">Confidentialité</a>
+            </div>
           </div>
         </div>
       </div>

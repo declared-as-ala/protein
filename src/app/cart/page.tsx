@@ -1,14 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header } from '@/app/components/Header';
 import { Footer } from '@/app/components/Footer';
 import { useCart } from '@/app/contexts/CartContext';
 import { Button } from '@/app/components/ui/button';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Input } from '@/app/components/ui/input';
+import { Progress } from '@/app/components/ui/progress';
+import { Badge } from '@/app/components/ui/badge';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Sparkles, Shield, Truck, CheckCircle2, Gift, TrendingUp, Zap, X } from 'lucide-react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
+import { motion, AnimatePresence } from 'motion/react';
+import { productsData } from '@/data/products';
+
+const FREE_SHIPPING_THRESHOLD = 300;
 
 export default function CartPage() {
   const {
@@ -18,31 +25,94 @@ export default function CartPage() {
     clearCart,
     getTotalPrice,
     getTotalItems,
+    addToCart,
   } = useCart();
+
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState(false);
+  const [showUpsells, setShowUpsells] = useState(true);
 
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
+  const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 10;
+  const couponDiscount = couponApplied ? totalPrice * 0.1 : 0; // 10% discount
+  const finalTotal = totalPrice + shippingCost - couponDiscount;
+
+  // Calculate remaining amount for free shipping
+  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - totalPrice);
+  const freeShippingProgress = Math.min(100, (totalPrice / FREE_SHIPPING_THRESHOLD) * 100);
+
+  // Calculate nutrition summary
+  const nutritionSummary = useMemo(() => {
+    // Mock nutrition data - in real app, this would come from product data
+    const totalProtein = items.reduce((sum, item) => {
+      // Estimate: ~25g protein per serving, 1 serving per item
+      return sum + (25 * item.quantity);
+    }, 0);
+
+    const totalCalories = items.reduce((sum, item) => {
+      // Estimate: ~120 calories per serving
+      return sum + (120 * item.quantity);
+    }, 0);
+
+    return { totalProtein, totalCalories };
+  }, [items]);
+
+  // Smart upsells - products not in cart
+  const upsellProducts = useMemo(() => {
+    const cartProductIds = new Set(items.map(item => item.product.id));
+    return productsData
+      .filter(p => !cartProductIds.has(p.id))
+      .slice(0, 3);
+  }, [items]);
+
+  const handleApplyCoupon = () => {
+    if (couponCode.toLowerCase() === 'welcome10' || couponCode.toLowerCase() === 'protein10') {
+      setCouponApplied(true);
+      setCouponError(false);
+    } else {
+      setCouponError(true);
+      setCouponApplied(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponApplied(false);
+    setCouponError(false);
+  };
 
   if (totalItems === 0) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
         <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center py-16">
-            <ShoppingBag className="h-24 w-24 mx-auto text-gray-300 dark:text-gray-700 mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <ShoppingBag className="h-24 w-24 mx-auto text-gray-300 dark:text-gray-700 mb-6" />
+            </motion.div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Votre panier est vide
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Ajoutez des produits à votre panier pour continuer vos achats
+            <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+              Découvrez nos produits premium pour atteindre vos objectifs
             </p>
-            <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
+            <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 h-14 text-lg shadow-lg">
               <Link href="/shop">
                 <ArrowLeft className="h-5 w-5 mr-2" />
-                Continuer vos achats
+                Découvrir nos produits
               </Link>
             </Button>
-          </div>
+          </motion.div>
         </main>
         <Footer />
         <ScrollToTop />
@@ -51,172 +121,421 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Page Header */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
           <Link
             href="/shop"
-            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 mb-4"
+            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour aux produits
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Mon Panier
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {totalItems} article{totalItems > 1 ? 's' : ''} dans votre panier
-          </p>
-        </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                Mon Panier
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                {totalItems} article{totalItems > 1 ? 's' : ''} • {totalPrice.toFixed(0)} DT
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={clearCart}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Vider le panier
+            </Button>
+          </div>
+        </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Cart Items */}
-          <div className="flex-1">
-            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
+          {/* Left: Cart Items */}
+          <div className="flex-1 space-y-6">
+            {/* Cart Items Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-6 lg:p-8"
+            >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">Articles</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearCart}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Vider le panier
-                </Button>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Articles ({totalItems})
+                </h2>
               </div>
 
-              <div className="space-y-6">
-                {items.map((item) => (
-                  <div
-                    key={item.product.id}
-                    className="flex flex-col sm:flex-row gap-4 pb-6 border-b border-gray-200 dark:border-gray-800 last:border-0"
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {items.map((item) => {
+                    const price = item.product.price || 0;
+                    const priceText = item.product.priceText;
+                    const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
+                    const displayPrice = newPriceMatch ? parseInt(newPriceMatch[1]) : price;
+
+                    return (
+                      <motion.div
+                        key={item.product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="flex flex-col sm:flex-row gap-4 p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
+                      >
+                        {/* Product Image */}
+                        <div className="relative w-full sm:w-32 h-48 sm:h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+                          {item.product.image ? (
+                            <Image
+                              src={item.product.image}
+                              alt={item.product.name}
+                              fill
+                              className="object-contain p-2"
+                              sizes="(max-width: 640px) 100vw, 128px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ShoppingBag className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2">
+                            {item.product.name}
+                          </h3>
+                          {item.product.category && (
+                            <Badge variant="outline" className="mb-2">
+                              {item.product.category}
+                            </Badge>
+                          )}
+                          <div className="flex items-center gap-4 mb-4">
+                            <div>
+                              <p className="text-2xl font-bold text-red-600 dark:text-red-500">
+                                {displayPrice} DT
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {displayPrice} DT / unité
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Quantity Controls */}
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-10 w-10 rounded-lg"
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="w-16 text-center font-bold text-lg">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-10 w-10 rounded-lg"
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 ml-auto"
+                              onClick={() => removeFromCart(item.product.id)}
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Subtotal */}
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Sous-total</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {(displayPrice * item.quantity).toFixed(0)} DT
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* Nutrition Summary Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-2xl shadow-lg border border-red-200 dark:border-red-900 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Zap className="h-6 w-6 text-red-600 dark:text-red-400" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Résumé Nutritionnel
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Protéines</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {nutritionSummary.totalProtein}g
+                  </p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Calories</p>
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {nutritionSummary.totalCalories}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Smart Upsells */}
+            {showUpsells && upsellProducts.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-yellow-500" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Recommandé pour vous
+                    </h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowUpsells(false)}
                   >
-                    {/* Product Image */}
-                    <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                      {item.product.image && (
-                        <Image
-                          src={item.product.image}
-                          alt={item.product.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 100vw, 96px"
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Les clients qui ont acheté ces articles ont également ajouté :
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {upsellProducts.map((product) => {
+                    const price = product.price || 0;
+                    const priceText = product.priceText;
+                    const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
+                    const displayPrice = newPriceMatch ? parseInt(newPriceMatch[1]) : price;
+
+                    return (
+                      <div
+                        key={product.id}
+                        className="group relative bg-gray-50 dark:bg-gray-800 rounded-xl p-4 hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => addToCart(product)}
+                      >
+                        {product.image && (
+                          <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-contain p-2"
+                              sizes="(max-width: 640px) 100vw, 33vw"
+                            />
+                          </div>
+                        )}
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                          {product.name}
+                        </h4>
+                        <p className="text-lg font-bold text-red-600 dark:text-red-400 mb-3">
+                          {displayPrice} DT
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Ajouter
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Right: Order Summary (Sticky) */}
+          <div className="lg:w-96 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="sticky top-24 space-y-6"
+            >
+              {/* Order Summary Card */}
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6 lg:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  Résumé de la commande
+                </h2>
+
+                {/* Free Shipping Progress */}
+                {totalPrice < FREE_SHIPPING_THRESHOLD && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Livraison gratuite
+                      </span>
+                      <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                        {remainingForFreeShipping.toFixed(0)} DT restants
+                      </span>
+                    </div>
+                    <Progress value={freeShippingProgress} className="h-3 mb-2" />
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      Ajoutez {remainingForFreeShipping.toFixed(0)} DT pour bénéficier de la livraison gratuite
+                    </p>
+                  </div>
+                )}
+
+                {/* Coupon Input */}
+                <div className="mb-6">
+                  {!couponApplied ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Code promo"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value);
+                            setCouponError(false);
+                          }}
+                          className="flex-1"
                         />
-                      )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                        {item.product.name}
-                      </h3>
-                      {item.product.category && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                          {item.product.category}
+                        <Button
+                          onClick={handleApplyCoupon}
+                          className="bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white"
+                        >
+                          Appliquer
+                        </Button>
+                      </div>
+                      {couponError && (
+                        <p className="text-sm text-red-600 dark:text-red-400">
+                          Code invalide. Essayez "WELCOME10" ou "PROTEIN10"
                         </p>
                       )}
-                      <p className="text-xl font-bold text-red-600 dark:text-red-500">
-                        {item.product.price !== null
-                          ? `${(item.product.price * item.quantity).toFixed(2)} DT`
-                          : 'Prix non disponible'}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Codes disponibles: WELCOME10, PROTEIN10
                       </p>
-                      {item.product.price !== null && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.product.price.toFixed(2)} DT / unité
-                        </p>
-                      )}
                     </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-12 text-center font-semibold">
-                          {item.quantity}
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+                          Code appliqué: -{couponDiscount.toFixed(0)} DT
                         </span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-9 w-9"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                        onClick={() => removeFromCart(item.product.id)}
+                        size="sm"
+                        onClick={handleRemoveCoupon}
+                        className="h-6 w-6 p-0"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
+                  )}
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                    <span>Sous-total</span>
+                    <span className="font-semibold">{totalPrice.toFixed(0)} DT</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:w-96 flex-shrink-0">
-            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 sticky top-24">
-              <h2 className="text-xl font-semibold mb-6">Résumé de la commande</h2>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>Sous-total</span>
-                  <span>{totalPrice.toFixed(2)} DT</span>
+                  <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                    <span>Livraison</span>
+                    <span className={shippingCost === 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'font-semibold'}>
+                      {shippingCost === 0 ? 'Gratuite' : `${shippingCost} DT`}
+                    </span>
+                  </div>
+                  {couponApplied && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>Remise</span>
+                      <span className="font-semibold">-{couponDiscount.toFixed(0)} DT</span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <div className="flex justify-between text-2xl font-bold">
+                      <span>Total</span>
+                      <span className="text-red-600 dark:text-red-400">
+                        {finalTotal.toFixed(0)} DT
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>Livraison</span>
-                  <span className="text-green-600 dark:text-green-500">
-                    {totalPrice >= 300 ? 'Gratuite' : 'À calculer'}
-                  </span>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span className="text-red-600 dark:text-red-500">
-                      {totalPrice.toFixed(2)} DT
+
+                {/* Trust Badges */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Paiement sécurisé
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Livraison rapide
                     </span>
                   </div>
                 </div>
+
+                {/* Checkout Button */}
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-14 text-lg font-bold shadow-lg mb-4"
+                  asChild
+                >
+                  <Link href="/checkout">
+                    Passer la commande
+                    <TrendingUp className="h-5 w-5 ml-2" />
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-12"
+                  asChild
+                >
+                  <Link href="/shop">
+                    Continuer vos achats
+                  </Link>
+                </Button>
               </div>
 
-              {totalPrice < 300 && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    Ajoutez encore {(300 - totalPrice).toFixed(2)} DT pour bénéficier de la
-                    livraison gratuite !
-                  </p>
+              {/* Delivery Estimation */}
+              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-2xl border border-blue-200 dark:border-blue-900 p-6">
+                <div className="flex items-start gap-3">
+                  <Truck className="h-6 w-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                      Estimation de livraison
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {shippingCost === 0 ? 'Livraison gratuite en 2-3 jours' : 'Livraison standard en 3-5 jours'}
+                    </p>
+                  </div>
                 </div>
-              )}
-
-              <Button
-                size="lg"
-                className="w-full bg-red-600 hover:bg-red-700 text-white mb-4"
-              >
-                Passer la commande
-              </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full"
-                asChild
-              >
-                <Link href="/shop">Continuer vos achats</Link>
-              </Button>
-            </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </main>

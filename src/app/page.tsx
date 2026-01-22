@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { Header } from '@/app/components/Header';
+import { PremiumTopBar } from '@/app/components/PremiumTopBar';
 import { HeroSlider } from '@/app/components/HeroSlider';
+import { SmartEntryPaths } from '@/app/components/SmartEntryPaths';
 import { FeaturesSection } from '@/app/components/FeaturesSection';
 import { CategoryGrid } from '@/app/components/CategoryGrid';
 import { ProductSection } from '@/app/components/ProductSection';
@@ -36,10 +38,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
+      <PremiumTopBar />
       <Header />
       
       <main>
         <HeroSlider />
+        <SmartEntryPaths />
         <FeaturesSection />
         <CategoryGrid />
         

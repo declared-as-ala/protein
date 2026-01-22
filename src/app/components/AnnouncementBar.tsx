@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X, Sparkles, Gift } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -15,19 +15,43 @@ export function AnnouncementBar() {
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: 'auto', opacity: 1 }}
         exit={{ height: 0, opacity: 0 }}
-        className="bg-gradient-to-r from-red-600 to-red-700 text-white relative overflow-hidden"
+        className="bg-gradient-to-r from-red-600 via-red-700 to-orange-600 text-white relative overflow-hidden shadow-lg"
       >
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-center gap-2 text-sm md:text-base">
-            <span className="font-semibold">🎉 Promotion spéciale !</span>
-            <span className="hidden sm:inline">Livraison gratuite à partir de 300 DT</span>
-            <span className="hidden md:inline">+ -15% sur votre première commande avec le code:</span>
-            <code className="hidden md:inline bg-white/20 px-2 py-1 rounded font-mono">WELCOME15</code>
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.1)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] animate-[shimmer_3s_infinite]"></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-3 text-sm md:text-base">
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Gift className="h-5 w-5" />
+            </motion.div>
+            <span className="font-bold">🎉 PROMOTION EXCEPTIONNELLE</span>
+            <span className="hidden sm:inline font-medium">• Livraison GRATUITE dès 300 DT</span>
+            <span className="hidden md:inline font-medium">• -20% avec le code:</span>
+            <motion.code
+              whileHover={{ scale: 1.05 }}
+              className="hidden md:inline bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg font-mono font-bold border border-white/30"
+            >
+              WELCOME20
+            </motion.code>
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="hidden lg:flex items-center gap-1 ml-2"
+            >
+              <Sparkles className="h-4 w-4 text-yellow-300" />
+              <span className="text-xs font-semibold">NOUVEAU</span>
+            </motion.div>
           </div>
         </div>
         <button
           onClick={() => setIsVisible(false)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded transition-colors"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/20 rounded-lg transition-all backdrop-blur-sm"
           aria-label="Close announcement"
         >
           <X className="h-4 w-4" />

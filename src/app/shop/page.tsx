@@ -11,6 +11,7 @@ import { Input } from '@/app/components/ui/input';
 import { Slider } from '@/app/components/ui/slider';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { X, Filter, SlidersHorizontal } from 'lucide-react';
+import { motion } from 'motion/react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 
 function ShopContent() {
@@ -89,19 +90,23 @@ function ShopContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-10"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
             Tous nos produits
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
           </p>
-        </div>
+        </motion.div>
 
         {/* Search and Filter Toggle */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -197,7 +202,11 @@ function ShopContent() {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Desktop Sidebar Filters */}
           <aside className="hidden md:block w-64 flex-shrink-0 space-y-6">
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-6 space-y-6"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-lg">Filtres</h2>
                 <Button
@@ -250,7 +259,7 @@ function ShopContent() {
                   <span>{priceBounds.max} DT</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </aside>
 
           {/* Products Grid */}

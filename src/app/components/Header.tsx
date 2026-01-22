@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Search, User, Menu, X, Moon, Sun, Phone } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Moon, Sun, Phone } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
 import { useTheme } from 'next-themes';
 import { AnnouncementBar } from './AnnouncementBar';
 import { PremiumTopBar } from './PremiumTopBar';
@@ -89,18 +88,6 @@ export function Header() {
               </Link>
             </nav>
 
-            {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
-                <Input
-                  type="search"
-                  placeholder="Rechercher un produit..."
-                  className="pl-12 pr-4 w-full h-11 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-red-500 rounded-xl shadow-sm transition-all"
-                />
-              </div>
-            </div>
-
             {/* Right Actions */}
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
@@ -148,18 +135,6 @@ export function Header() {
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
-            </div>
-          </div>
-
-          {/* Mobile Search */}
-          <div className="md:hidden pb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Rechercher..."
-                className="pl-10 w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-              />
             </div>
           </div>
         </div>

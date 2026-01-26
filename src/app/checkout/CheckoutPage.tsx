@@ -322,7 +322,7 @@ export default function CheckoutPage() {
         setOrderData({
           order: {
             id: Number(orderId),
-            numero: response.numero || `#${orderId}`,
+            numero: (response as any).numero || `#${orderId}`,
             nom: formData.nom,
             prenom: formData.prenom,
             email: formData.email,

@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     url: 'https://sobitas.tn',
     type: 'website',
   },
+  other: {
+    'preload-image': '/photo.avif',
+  },
 };
 
 // Preload critical hero image for LCP optimization

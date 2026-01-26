@@ -32,9 +32,11 @@ const nextConfig = {
   },
   compress: true,
   poweredByHeader: false,
-  // experimental: {
-  //   optimizeCss: true, // Disabled - requires critters package
-  // },
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-dropdown-menu'],
+  },
+  // Optimize production builds
+  swcMinify: true,
 }
 
 module.exports = nextConfig

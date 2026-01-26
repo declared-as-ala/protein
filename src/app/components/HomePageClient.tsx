@@ -2,8 +2,6 @@
 
 import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Header } from '@/app/components/Header';
-import { PremiumTopBar } from '@/app/components/PremiumTopBar';
 import { HeroSlider } from '@/app/components/HeroSlider';
 import { SmartEntryPaths } from '@/app/components/SmartEntryPaths';
 import { FeaturesSection } from '@/app/components/FeaturesSection';
@@ -11,7 +9,14 @@ import { CategoryGrid } from '@/app/components/CategoryGrid';
 import { ProductSection } from '@/app/components/ProductSection';
 import type { AccueilData, Product } from '@/types';
 import { getStorageUrl } from '@/services/api';
-import { LoadingSpinner } from '@/app/components/LoadingSpinner';
+
+// Defer header and topbar - they're not critical for LCP but keep SSR for SEO
+const Header = dynamic(() => import('@/app/components/Header').then(mod => ({ default: mod.Header })), {
+  ssr: true,
+});
+const PremiumTopBar = dynamic(() => import('@/app/components/PremiumTopBar').then(mod => ({ default: mod.PremiumTopBar })), {
+  ssr: true,
+});
 
 // Lazy load non-critical below-the-fold components
 const PromoBanner = dynamic(() => import('@/app/components/PromoBanner').then(mod => ({ default: mod.PromoBanner })), {
@@ -84,7 +89,7 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
       <Header />
       
       <main>
-        {/* Above the fold - Critical content */}
+        {/* Above the fold - Critical content - Hero must render first */}
         <HeroSlider slides={slides} />
         <SmartEntryPaths />
         <FeaturesSection />

@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
-import { motion, AnimatePresence } from 'motion/react';
 import { getStorageUrl } from '@/services/api';
 
 const defaultSlides = [
@@ -36,8 +35,8 @@ interface HeroSliderProps {
   slides?: any[];
 }
 
-// Lazy-loaded slide image component
-const LazySlideImage = memo(({ 
+// Optimized slide image component - no lazy loading for first slide
+const SlideImage = memo(({ 
   src, 
   alt, 
   isFirst, 
@@ -48,26 +47,39 @@ const LazySlideImage = memo(({
   isFirst: boolean;
   className?: string;
 }) => {
+  if (!isFirst) {
+    // Lazy load non-first slides
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={className || 'object-cover'}
+        sizes="100vw"
+        quality={75}
+        loading="lazy"
+      />
+    );
+  }
+  
+  // First slide - critical for LCP
   return (
     <Image
       src={src}
       alt={alt}
       fill
-      priority={isFirst}
-      fetchPriority={isFirst ? "high" : "auto"}
+      priority
+      fetchPriority="high"
       className={className || 'object-cover'}
       sizes="100vw"
-      quality={isFirst ? 90 : 75}
-      loading={isFirst ? undefined : "lazy"}
+      quality={90}
     />
   );
 });
-LazySlideImage.displayName = 'LazySlideImage';
+SlideImage.displayName = 'SlideImage';
 
 export const HeroSlider = memo(function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isClient, setIsClient] = useState(false);
-  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0])); // Preload first slide
 
   // Modify slides to use photo.avif as the first image
   const modifiedSlides = useMemo(() => {
@@ -86,27 +98,13 @@ export const HeroSlider = memo(function HeroSlider({ slides = defaultSlides }: H
   }, [slides]);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Preload next slide when current slide changes
-  useEffect(() => {
-    if (!isClient || modifiedSlides.length === 0) return;
-    
-    const nextIndex = (currentSlide + 1) % modifiedSlides.length;
-    if (!loadedSlides.has(nextIndex)) {
-      setLoadedSlides(prev => new Set([...prev, nextIndex]));
-    }
-  }, [currentSlide, isClient, modifiedSlides.length, loadedSlides]);
-
-  useEffect(() => {
-    if (!isClient || modifiedSlides.length === 0) return;
+    if (modifiedSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % modifiedSlides.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [isClient, modifiedSlides.length]);
+  }, [modifiedSlides.length]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % modifiedSlides.length);
@@ -122,65 +120,52 @@ export const HeroSlider = memo(function HeroSlider({ slides = defaultSlides }: H
 
   return (
     <section className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900" aria-label="Hero carousel">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="absolute inset-0"
-        >
-          {/* Background Image - Only render if loaded or is first slide */}
-          {(isFirstSlide || loadedSlides.has(currentSlide)) && (
-            <LazySlideImage
-              src={imageSrc}
-              alt={currentSlideData?.titre || currentSlideData?.title || 'Slide'}
-              isFirst={isFirstSlide}
-              className={currentSlideData?.image === '/photo.avif' ? 'object-cover scale-[0.85]' : 'object-cover'}
-            />
-          )}
-          
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" aria-hidden="true" />
+      <div 
+        key={currentSlide}
+        className="absolute inset-0"
+      >
+        {/* Background Image - Always render first slide immediately */}
+        <SlideImage
+          src={imageSrc}
+          alt={currentSlideData?.titre || currentSlideData?.title || 'Slide'}
+          isFirst={isFirstSlide}
+          className={currentSlideData?.image === '/photo.avif' ? 'object-cover scale-[0.85]' : 'object-cover'}
+        />
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" aria-hidden="true" />
 
-          {/* Content */}
-          <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-              className="max-w-2xl"
-            >
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                {currentSlideData?.titre || currentSlideData?.title || 'Protéines & Whey Premium'}
-              </h1>
-              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-xl">
-                {currentSlideData?.description || 'Des protéines de qualité supérieure pour maximiser vos gains musculaires'}
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg" 
-                  className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base min-h-[48px] min-w-[120px]"
-                  asChild
-                >
-                  <Link href={currentSlideData?.lien || currentSlideData?.link || '/shop'}>
-                    {currentSlideData?.cta || 'Découvrir'}
-                  </Link>
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base min-h-[48px] min-w-[160px]"
-                  asChild
-                >
-                  <Link href="/shop">Voir Catégories</Link>
-                </Button>
-              </div>
-            </motion.div>
+        {/* Content */}
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              {currentSlideData?.titre || currentSlideData?.title || 'Protéines & Whey Premium'}
+            </h1>
+            <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-xl">
+              {currentSlideData?.description || 'Des protéines de qualité supérieure pour maximiser vos gains musculaires'}
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button 
+                size="lg" 
+                className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base min-h-[48px] min-w-[120px]"
+                asChild
+              >
+                <Link href={currentSlideData?.lien || currentSlideData?.link || '/shop'}>
+                  {currentSlideData?.cta || 'Découvrir'}
+                </Link>
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base min-h-[48px] min-w-[160px]"
+                asChild
+              >
+                <Link href="/shop">Voir Catégories</Link>
+              </Button>
+            </div>
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      </div>
 
       {/* Navigation Arrows */}
       <button

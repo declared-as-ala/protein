@@ -13,7 +13,7 @@ const heroSlides = [
     titre: "Protéines Premium",
     description: "Commencez votre journée avec l'énergie parfaite : protéines premium de qualité pour booster vos performances et atteindre vos objectifs",
     lien: "/shop",
-    image: "/hero/protein_and_coffee_1db3f8a9-b5d6-4e73-920e-eab0012ecb83.webp",
+    image: "/hero/hero1.jpg",
   },
   {
     id: 2,
@@ -82,7 +82,7 @@ const SlideImage = memo(({
         src={src}
         alt={alt}
         fill
-        className={className || 'object-contain'}
+        className={className || 'object-cover'}
         sizes="100vw"
         quality={85}
         loading="lazy"
@@ -91,6 +91,7 @@ const SlideImage = memo(({
   }
   
   // First slide - critical for LCP, highest priority
+  // Image is 1920x800, perfect for carousel - use object-cover to fill space
   return (
     <Image
       src={src}
@@ -98,7 +99,7 @@ const SlideImage = memo(({
       fill
       priority
       fetchPriority="high"
-      className={className || 'object-contain'}
+      className={className || 'object-cover'}
       sizes="100vw"
       quality={90}
     />
@@ -139,25 +140,21 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
   const isPhoto3 = currentSlide === 2;
 
   return (
-    <section className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden bg-gray-900" aria-label="Hero carousel">
+    <section 
+      className="relative w-full overflow-hidden bg-gray-900" 
+      style={{ aspectRatio: '12/5' }}
+      aria-label="Hero carousel"
+    >
       <div 
         key={currentSlide}
         className="absolute inset-0 transition-opacity duration-700 ease-in-out"
       >
-        {/* Background Image - Optimized for fast loading, showing full image */}
+        {/* Background Image - Fills container edge to edge with proper aspect ratio */}
         <SlideImage
           src={currentSlideData.image}
           alt={currentSlideData.titre}
           isFirst={isFirstSlide}
-          className={
-            isPhoto1 
-              ? "object-contain" // Photo 1: normal size, no scale
-              : isPhoto3 
-              ? "object-contain scale-105 sm:scale-110" // Photo 3: minimal scale
-              : isWideSlide 
-              ? "object-contain scale-110 sm:scale-125 md:scale-[1.4] lg:scale-[1.5]" // Photos 4 and 7: wider
-              : "object-contain" // Other photos: normal
-          }
+          className="object-cover"
         />
         
         {/* Gradient Overlay for better text readability */}

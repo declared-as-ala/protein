@@ -10,6 +10,7 @@ export interface Product {
   id: number;
   slug: string;
   designation_fr: string;
+  designation_ar?: string;
   description_fr?: string;
   description_cover?: string;
   cover?: string;
@@ -29,6 +30,7 @@ export interface Product {
   aromes?: Aroma[];
   tags?: Tag[];
   sous_categorie?: SubCategory;
+  brand?: Brand;
   reviews?: Review[];
   qte?: number;
 }

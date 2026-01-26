@@ -43,60 +43,86 @@ const entryPaths = [
 
 export function SmartEntryPaths() {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <section className="py-8 sm:py-12 md:py-16 lg:py-24 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-4">
             Trouvez votre parcours
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Choisissez votre objectif et découvrez les produits parfaitement adaptés à vos besoins
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {entryPaths.map((path) => {
-            const Icon = path.icon;
-            return (
-              <article key={path.id} className="group relative">
-                <Link href={path.link} aria-label={`Découvrir les produits pour ${path.title}`}>
-                  <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-800`}>
-                    {/* Background Image with Overlay - Deferred loading for performance */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
-                      {/* Remove external Unsplash images - use gradient background instead for better performance */}
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative p-8 h-full flex flex-col">
-                      {/* Icon */}
-                      <div className={`mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${path.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`} aria-hidden="true">
-                        <Icon className="h-8 w-8 text-white" />
+        {/* Mobile: Horizontal scroll, Desktop: Grid */}
+        <div className="md:grid md:grid-cols-3 md:gap-6 lg:gap-8">
+          {/* Mobile horizontal scroll */}
+          <div className="flex md:hidden gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-4 px-4">
+            {entryPaths.map((path) => {
+              const Icon = path.icon;
+              return (
+                <article key={path.id} className="group relative flex-shrink-0 w-[85vw] snap-start">
+                  <Link href={path.link} aria-label={`Découvrir les produits pour ${path.title}`}>
+                    <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800 min-h-[280px]`}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900" />
+                      <div className="relative p-4 h-full flex flex-col">
+                        <div className={`mb-4 w-12 h-12 rounded-xl bg-gradient-to-br ${path.gradient} flex items-center justify-center shadow-lg`} aria-hidden="true">
+                          <Icon className="h-6 w-6 text-white" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                          {path.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1 line-clamp-3">
+                          {path.description}
+                        </p>
+                        <Button
+                          className={`bg-gradient-to-r ${path.gradient} hover:opacity-90 text-white w-full min-h-[44px] text-sm`}
+                          size="sm"
+                        >
+                          Découvrir
+                          <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
+                        </Button>
                       </div>
-
-                      {/* Title */}
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                        {path.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-gray-600 dark:text-gray-400 mb-6 flex-1">
-                        {path.description}
-                      </p>
-
-                      {/* CTA */}
-                      <Button
-                        className={`bg-gradient-to-r ${path.gradient} hover:opacity-90 text-white w-full min-h-[48px] group-hover:translate-x-2 transition-transform`}
-                        size="lg"
-                      >
-                        Découvrir
-                        <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                      </Button>
                     </div>
-                  </div>
-                </Link>
-              </article>
-            );
-          })}
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+          
+          {/* Desktop grid - Better proportions on large screens */}
+          <div className="hidden md:grid md:grid-cols-3 md:gap-6 lg:gap-8">
+            {entryPaths.map((path) => {
+              const Icon = path.icon;
+              return (
+                <article key={path.id} className="group relative">
+                  <Link href={path.link} aria-label={`Découvrir les produits pour ${path.title}`}>
+                    <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-800 min-h-[320px] max-h-[400px]`}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900" />
+                      <div className="relative p-6 lg:p-8 h-full flex flex-col">
+                        <div className={`mb-4 lg:mb-6 w-14 h-14 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl bg-gradient-to-br ${path.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform flex-shrink-0`} aria-hidden="true">
+                          <Icon className="h-7 w-7 lg:h-8 lg:w-8 text-white" />
+                        </div>
+                        <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 lg:mb-3 flex-shrink-0">
+                          {path.title}
+                        </h3>
+                        <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-4 lg:mb-6 flex-1 overflow-hidden">
+                          <span className="line-clamp-3 lg:line-clamp-4">{path.description}</span>
+                        </p>
+                        <Button
+                          className={`bg-gradient-to-r ${path.gradient} hover:opacity-90 text-white w-full min-h-[44px] lg:min-h-[48px] mt-auto flex-shrink-0 sm:group-hover:translate-x-2 transition-colors`}
+                          size="lg"
+                        >
+                          Découvrir
+                          <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

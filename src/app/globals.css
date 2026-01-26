@@ -5,6 +5,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar for horizontal scroll on mobile */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -99,5 +110,29 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Reduce animations on mobile for better performance */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Disable heavy transforms on mobile */
+  .group-hover\:scale-110 {
+    transform: none !important;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

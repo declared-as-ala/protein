@@ -125,8 +125,8 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
         )}
       </div>
 
-      {/* Image Container */}
-      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
+      {/* Image Container - Fixed aspect ratio for CLS */}
+      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden" style={{ minHeight: '200px' }}>
         <Link href={`/products/${productData.slug || product.id}`} aria-label={`Voir ${productData.name}`}>
           {productData.image ? (
             <Image
@@ -134,7 +134,7 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
               alt={productData.name}
               width={400}
               height={400}
-              className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+              className="w-full h-full object-contain p-2 sm:p-4 sm:group-hover:scale-110 transition-transform duration-300"
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               quality={75}
@@ -173,16 +173,16 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         {/* Product Name */}
-        <Link href={`/products/${productData.slug || product.id}`} className="block mb-2">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
+        <Link href={`/products/${productData.slug || product.id}`} className="block mb-1 sm:mb-2">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors min-h-[2.5rem] sm:min-h-0">
             {productData.name}
           </h3>
         </Link>
 
-        {/* Nutrition Highlights - Premium Feature */}
-        <div className="flex items-center gap-3 mb-3 text-xs">
+        {/* Nutrition Highlights - Premium Feature - Hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-3 mb-3 text-xs">
           <div className="flex items-center gap-1 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-full">
             <span className="font-semibold text-red-600 dark:text-red-400">25g</span>
             <span className="text-gray-600 dark:text-gray-400">protéine</span>
@@ -193,36 +193,36 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           </div>
         </div>
 
-        {/* Rating */}
+        {/* Rating - Smaller on mobile */}
         {productData.rating > 0 && (
-          <div className="flex items-center gap-1 mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5`}>
+          <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5`}>
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-4 w-4 ${
+                className={`h-3 w-3 sm:h-4 sm:w-4 ${
                   i < Math.floor(productData.rating) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
                 }`}
                 aria-hidden="true"
               />
             ))}
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">({productData.rating.toFixed(1)})</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 ml-0.5 sm:ml-1">({productData.rating.toFixed(1)})</span>
           </div>
         )}
 
-        {/* Price */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        {/* Price - Smaller on mobile */}
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="flex items-center gap-1 sm:gap-2">
             {productData.oldPrice && productData.newPrice && productData.oldPrice !== productData.newPrice ? (
               <>
-                <span className="text-lg font-bold text-red-600 dark:text-red-500">
+                <span className="text-sm sm:text-lg font-bold text-red-600 dark:text-red-500">
                   {productData.newPrice} DT
                 </span>
-                <span className="text-sm text-gray-400 line-through" aria-label={`Prix original: ${productData.oldPrice} DT`}>
+                <span className="text-xs sm:text-sm text-gray-400 line-through" aria-label={`Prix original: ${productData.oldPrice} DT`}>
                   {productData.oldPrice} DT
                 </span>
               </>
             ) : (
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
+              <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
                 {productData.newPrice || productData.oldPrice} DT
               </span>
             )}
@@ -255,9 +255,10 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={isMobile ? false : { opacity: 0, y: 20 }}
+      whileInView={isMobile ? false : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "50px" }}
+      transition={{ duration: 0.2 }}
       className={className}
     >
       {cardContent}

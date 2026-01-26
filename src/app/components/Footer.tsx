@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift, Loader2, MessageCircle } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift, Loader2, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { motion } from 'motion/react';
@@ -14,6 +14,12 @@ export function Footer() {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    navigation: false,
+    services: false,
+    contact: false,
+    newsletter: false,
+  });
 
   // Lazy load Google Maps only when footer is visible (Intersection Observer)
   useEffect(() => {
@@ -75,13 +81,13 @@ export function Footer() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex flex-col items-center gap-3 p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                  className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
                 >
-                  <div className={`${item.color} p-3 rounded-full bg-gray-900`}>
-                    <Icon className="h-6 w-6" />
+                  <div className={`${item.color} p-2 sm:p-3 rounded-full bg-gray-900`}>
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <span className="text-sm font-semibold text-center">{item.text}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-center">{item.text}</span>
                 </motion.div>
               );
             })}
@@ -89,9 +95,128 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+      {/* Main Footer - Compact on mobile with accordion */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        {/* Mobile: 2-column accordion, Desktop: 4-column grid */}
+        <div className="md:hidden grid grid-cols-2 gap-4">
+          {/* Column 1: Navigation */}
+          <div className="border-b border-gray-800 pb-4">
+            <button
+              onClick={() => setOpenSections(prev => ({ ...prev, navigation: !prev.navigation }))}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h3 className="font-semibold text-white text-sm">Navigation</h3>
+              {openSections.navigation ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+            {openSections.navigation && (
+              <ul className="mt-3 space-y-2">
+                <li><a href="/" className="text-xs text-gray-400 hover:text-red-500">Accueil</a></li>
+                <li><a href="#products" className="text-xs text-gray-400 hover:text-red-500">Produits</a></li>
+                <li><a href="#packs" className="text-xs text-gray-400 hover:text-red-500">Packs</a></li>
+                <li><a href="#blog" className="text-xs text-gray-400 hover:text-red-500">Blog</a></li>
+                <li><a href="#contact" className="text-xs text-gray-400 hover:text-red-500">Contact</a></li>
+              </ul>
+            )}
+          </div>
+
+          {/* Column 1: Services */}
+          <div className="border-b border-gray-800 pb-4">
+            <button
+              onClick={() => setOpenSections(prev => ({ ...prev, services: !prev.services }))}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h3 className="font-semibold text-white text-sm">Services</h3>
+              {openSections.services ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+            {openSections.services && (
+              <ul className="mt-3 space-y-2">
+                <li><a href="#" className="text-xs text-gray-400 hover:text-red-500">CGV</a></li>
+                <li><a href="#" className="text-xs text-gray-400 hover:text-red-500">Remboursement</a></li>
+                <li><a href="#" className="text-xs text-gray-400 hover:text-red-500">À propos</a></li>
+              </ul>
+            )}
+          </div>
+
+          {/* Column 2: Contact */}
+          <div className="border-b border-gray-800 pb-4">
+            <button
+              onClick={() => setOpenSections(prev => ({ ...prev, contact: !prev.contact }))}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h3 className="font-semibold text-white text-sm">Contact</h3>
+              {openSections.contact ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+            {openSections.contact && (
+              <div className="mt-3 space-y-2">
+                <a href="tel:+21673200500" className="flex items-center gap-2 text-xs text-gray-400 hover:text-red-500">
+                  <Phone className="h-3 w-3" />
+                  <span>+216 73 200 500</span>
+                </a>
+                <a href="mailto:contact@protein.tn" className="flex items-center gap-2 text-xs text-gray-400 hover:text-red-500">
+                  <Mail className="h-3 w-3" />
+                  <span>Email</span>
+                </a>
+                <div className="flex gap-2 mt-3">
+                  <a href="https://www.facebook.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-full bg-gray-800 hover:bg-[#1877F2] flex items-center justify-center">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                  <a href="https://www.instagram.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-full bg-gray-800 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 flex items-center justify-center">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Column 2: Newsletter */}
+          <div className="border-b border-gray-800 pb-4">
+            <button
+              onClick={() => setOpenSections(prev => ({ ...prev, newsletter: !prev.newsletter }))}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h3 className="font-semibold text-white text-sm">Newsletter</h3>
+              {openSections.newsletter ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+            {openSections.newsletter && (
+              <form onSubmit={handleNewsletterSubmit} className="mt-3 space-y-2">
+                <Input
+                  type="email"
+                  placeholder="Email..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 h-9 text-xs rounded-lg"
+                  required
+                />
+                <Button 
+                  type="submit"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white h-9 text-xs font-semibold rounded-lg"
+                  disabled={isSubscribing}
+                >
+                  {isSubscribing ? '...' : 'S\'abonner'}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop: Original 4-column layout */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Contact Info & Social */}
           <div className="space-y-6">
             <div className="relative h-12 w-auto">
@@ -354,7 +479,7 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
+      {/* Bottom Bar - Compact on mobile */}
       <div className="border-t border-gray-800/50 bg-black/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">

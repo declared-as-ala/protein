@@ -98,10 +98,13 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
         {/* Above the fold - Critical content - Hero must render first */}
         <HeroSlider slides={slides} />
         {/* SmartEntryPaths - Below fold, can be deferred */}
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="h-64 bg-gray-50 dark:bg-gray-900" />}>
           <SmartEntryPaths />
         </Suspense>
-        <FeaturesSection />
+        {/* FeaturesSection - Fixed height to prevent CLS */}
+        <div style={{ minHeight: '200px' }}>
+          <FeaturesSection />
+        </div>
         <CategoryGrid categories={accueil.categories || []} />
         
         {/* Product sections */}

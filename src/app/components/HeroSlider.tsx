@@ -139,15 +139,46 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
   // Photo 3 (index 2) uses minimal scale
   const isPhoto3 = currentSlide === 2;
 
+  // Swipe gesture handlers for mobile
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) nextSlide();
+    if (isRightSwipe) prevSlide();
+  };
+
   return (
     <section 
       className="relative w-full overflow-hidden bg-gray-900" 
-      style={{ aspectRatio: '12/5' }}
+      style={{ 
+        aspectRatio: '12/5',
+        height: 'clamp(55vh, 60vh, 65vh)' // Mobile: 55-65vh max
+      }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       aria-label="Hero carousel"
     >
       <div 
         key={currentSlide}
-        className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+        className="absolute inset-0 transition-opacity duration-300 ease-in-out"
+        style={{ willChange: 'opacity' }}
       >
         {/* Background Image - Fills container edge to edge with proper aspect ratio */}
         <SlideImage
@@ -163,16 +194,16 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
         {/* Content - Responsive and centered */}
         <div className="relative h-full w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
           <div className="max-w-2xl lg:max-w-3xl">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight drop-shadow-lg">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight drop-shadow-lg">
               {currentSlideData.titre}
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-100 mb-6 sm:mb-8 max-w-xl drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-100 mb-4 sm:mb-6 md:mb-8 max-w-xl drop-shadow-md line-clamp-2 sm:line-clamp-none">
               {currentSlideData.description}
             </p>
-            <div className="flex flex-wrap gap-3 sm:gap-4">
+            <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
               <Button 
                 size="lg" 
-                className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 h-12 sm:h-12 text-sm sm:text-base min-h-[48px] min-w-[120px] shadow-lg hover:shadow-xl transition-all"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 md:px-8 h-10 sm:h-12 text-xs sm:text-sm md:text-base min-h-[44px] sm:min-h-[48px] min-w-[100px] sm:min-w-[120px] shadow-lg hover:shadow-xl transition-colors"
                 asChild
               >
                 <Link href={currentSlideData.lien} aria-label="Découvrir nos produits">
@@ -182,7 +213,7 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-6 sm:px-8 h-12 sm:h-12 text-sm sm:text-base min-h-[48px] min-w-[160px] backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
+                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-4 sm:px-6 md:px-8 h-10 sm:h-12 text-xs sm:text-sm md:text-base min-h-[44px] sm:min-h-[48px] min-w-[140px] sm:min-w-[160px] backdrop-blur-sm shadow-lg hover:shadow-xl transition-colors"
                 asChild
               >
                 <Link href="/shop" aria-label="Voir toutes les catégories de produits">Voir Catégories</Link>
@@ -210,8 +241,8 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
         <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
       </button>
 
-      {/* Indicators - Responsive with proper touch targets */}
-      <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10" role="tablist" aria-label="Indicateurs de diapositives">
+      {/* Indicators - Much smaller on mobile, subtle opacity */}
+      <div className="absolute bottom-3 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-3 z-10 items-center" role="tablist" aria-label="Indicateurs de diapositives">
         {slidesToUse.map((slide, index: number) => (
           <button
             key={slide.id}
@@ -219,10 +250,10 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
             role="tab"
             aria-selected={index === currentSlide}
             aria-label={`Aller à la diapositive ${index + 1}`}
-            className={`h-3 sm:h-3 rounded-full transition-all min-h-[48px] min-w-[48px] flex items-center justify-center ${
+            className={`rounded-full transition-all flex items-center justify-center ${
               index === currentSlide 
-                ? 'w-12 sm:w-12 bg-red-600 shadow-lg' 
-                : 'w-3 sm:w-3 bg-white/50 hover:bg-white/75'
+                ? 'h-2 w-8 sm:h-3 sm:w-12 bg-red-600 shadow-lg opacity-100' 
+                : 'h-1.5 w-1.5 sm:h-2 sm:w-2 bg-white/30 hover:bg-white/50 opacity-60'
             }`}
             type="button"
           >

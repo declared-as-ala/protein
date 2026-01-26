@@ -27,7 +27,7 @@ const heroSlides = [
     titre: "Protéines Premium",
     description: "Notre sélection exclusive de protéines de qualité supérieure pour vos objectifs",
     lien: "/shop",
-    image: "/hero/87c08beaae1ef66964cca248d39dbe63.jpg",
+    image: "/hero/hero 6.jpg",
   },
   {
     id: 4,
@@ -172,20 +172,20 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
             <div className="flex flex-wrap gap-3 sm:gap-4">
               <Button 
                 size="lg" 
-                className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base min-h-[44px] min-w-[120px] shadow-lg hover:shadow-xl transition-all"
+                className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 h-12 sm:h-12 text-sm sm:text-base min-h-[48px] min-w-[120px] shadow-lg hover:shadow-xl transition-all"
                 asChild
               >
-                <Link href={currentSlideData.lien}>
+                <Link href={currentSlideData.lien} aria-label="Découvrir nos produits">
                   Découvrir
                 </Link>
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base min-h-[44px] min-w-[160px] backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
+                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 px-6 sm:px-8 h-12 sm:h-12 text-sm sm:text-base min-h-[48px] min-w-[160px] backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
                 asChild
               >
-                <Link href="/shop">Voir Catégories</Link>
+                <Link href="/shop" aria-label="Voir toutes les catégories de produits">Voir Catégories</Link>
               </Button>
             </div>
           </div>
@@ -210,7 +210,7 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
         <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
       </button>
 
-      {/* Indicators - Responsive */}
+      {/* Indicators - Responsive with proper touch targets */}
       <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10" role="tablist" aria-label="Indicateurs de diapositives">
         {slidesToUse.map((slide, index: number) => (
           <button
@@ -219,13 +219,15 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
             role="tab"
             aria-selected={index === currentSlide}
             aria-label={`Aller à la diapositive ${index + 1}`}
-            className={`h-2.5 sm:h-3 rounded-full transition-all min-w-[10px] sm:min-w-[12px] ${
+            className={`h-3 sm:h-3 rounded-full transition-all min-h-[48px] min-w-[48px] flex items-center justify-center ${
               index === currentSlide 
-                ? 'w-10 sm:w-12 bg-red-600 shadow-lg' 
-                : 'w-2.5 sm:w-3 bg-white/50 hover:bg-white/75'
+                ? 'w-12 sm:w-12 bg-red-600 shadow-lg' 
+                : 'w-3 sm:w-3 bg-white/50 hover:bg-white/75'
             }`}
             type="button"
-          />
+          >
+            <span className="sr-only">Diapositive {index + 1}</span>
+          </button>
         ))}
       </div>
     </section>

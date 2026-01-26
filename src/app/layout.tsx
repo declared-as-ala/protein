@@ -99,6 +99,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning data-scroll-behavior="smooth">
+      <head>
+        {/* Preconnect to API for faster requests - 310ms savings */}
+        <link rel="preconnect" href="https://admin.sobitas.tn" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://admin.sobitas.tn" />
+        {/* Preload critical hero image for LCP optimization */}
+        <link rel="preload" as="image" href="/hero/hero1.jpg" fetchPriority="high" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>

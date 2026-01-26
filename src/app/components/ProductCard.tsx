@@ -96,30 +96,30 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
 
   const cardContent = (
     <>
-      {/* Badges */}
+      {/* Badges - Improved contrast for accessibility (WCAG AA) */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
         {!productData.isInStock && (
-          <Badge className="bg-gray-600 text-white hover:bg-gray-700 font-semibold">
+          <Badge className="bg-gray-900 text-white hover:bg-gray-800 font-semibold border-0">
             Rupture de stock
           </Badge>
         )}
         {productData.isInStock && productData.discount > 0 && (
-          <Badge className="bg-red-600 text-white hover:bg-red-700 font-semibold">
+          <Badge className="bg-red-700 text-white hover:bg-red-800 font-semibold border-0">
             -{productData.discount}%
           </Badge>
         )}
         {productData.isInStock && showBadge && badgeText && (
-          <Badge className="bg-green-600 text-white hover:bg-green-700 font-semibold">
+          <Badge className="bg-green-700 text-white hover:bg-green-800 font-semibold border-0">
             {badgeText}
           </Badge>
         )}
         {productData.isInStock && !showBadge && productData.isNew && (
-          <Badge className="bg-blue-600 text-white hover:bg-blue-700 font-semibold">
+          <Badge className="bg-blue-700 text-white hover:bg-blue-800 font-semibold border-0">
             New
           </Badge>
         )}
         {productData.isInStock && !showBadge && productData.isBestSeller && (
-          <Badge className="bg-yellow-600 text-white hover:bg-yellow-700 font-semibold">
+          <Badge className="bg-yellow-700 text-white hover:bg-yellow-800 font-semibold border-0">
             Top Vendu
           </Badge>
         )}

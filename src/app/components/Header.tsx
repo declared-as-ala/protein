@@ -37,8 +37,8 @@ export function Header() {
       <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
         <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
           <div className="flex items-center gap-4">
-            <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors">
-              <Phone className="h-4 w-4" />
+            <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
+              <Phone className="h-4 w-4" aria-hidden="true" />
               <span className="hidden md:inline">+216 73 200 500</span>
             </a>
           </div>
@@ -127,16 +127,17 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px]"
                   asChild
                 >
-                  <Link href="/cart">
-                    <ShoppingCart className="h-5 w-5" />
+                  <Link href="/cart" aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}>
+                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
                     {cartItemsCount > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
+                        aria-label={`${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''} dans le panier`}
                       >
                         {cartItemsCount}
                       </motion.span>

@@ -3,10 +3,16 @@
 import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { HeroSlider } from '@/app/components/HeroSlider';
-import { SmartEntryPaths } from '@/app/components/SmartEntryPaths';
+
 import { FeaturesSection } from '@/app/components/FeaturesSection';
 import { CategoryGrid } from '@/app/components/CategoryGrid';
 import { ProductSection } from '@/app/components/ProductSection';
+
+// Lazy load SmartEntryPaths - it's below the fold
+const SmartEntryPaths = dynamic(() => import('@/app/components/SmartEntryPaths').then(mod => ({ default: mod.SmartEntryPaths })), {
+  ssr: false,
+  loading: () => null,
+});
 import type { AccueilData, Product } from '@/types';
 import { getStorageUrl } from '@/services/api';
 
@@ -91,7 +97,10 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
       <main>
         {/* Above the fold - Critical content - Hero must render first */}
         <HeroSlider slides={slides} />
-        <SmartEntryPaths />
+        {/* SmartEntryPaths - Below fold, can be deferred */}
+        <Suspense fallback={null}>
+          <SmartEntryPaths />
+        </Suspense>
         <FeaturesSection />
         <CategoryGrid categories={accueil.categories || []} />
         

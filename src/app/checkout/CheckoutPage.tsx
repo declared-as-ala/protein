@@ -1,25 +1,26 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/app/components/Header';
 import { Footer } from '@/app/components/Footer';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 import { useCart } from '@/app/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { createOrder, getStorageUrl } from '@/services/api';
-import type { OrderRequest } from '@/types';
+import { createOrder, getStorageUrl, getOrderDetails } from '@/services/api';
+import type { OrderRequest, Order } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { ArrowLeft, ShoppingCart, Shield, Truck, CheckCircle2, Loader2, CreditCard, Wallet } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Shield, Truck, CheckCircle2, Loader2, CreditCard, Wallet, Printer, List, ArrowRight, Package } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { AddressSelector } from '@/app/components/AddressSelector';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import Link from 'next/link';
 
 const FREE_SHIPPING_THRESHOLD = 300;
 
@@ -27,10 +28,13 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [sameAsBilling, setSameAsBilling] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod');
+  const [orderData, setOrderData] = useState<{ order: Order; orderDetails: any[] } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
   
   // Address selector states
   const [gouvernorat, setGouvernorat] = useState('');
@@ -74,15 +78,15 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    // Don't redirect if order is being completed or already completed
-    if (isOrderComplete || isSubmitting) {
+    // Don't redirect if order is being completed or already completed, or if we're on step 3
+    if (isOrderComplete || isSubmitting || currentStep === 3) {
       return;
     }
     if (items.length === 0) {
       router.push('/cart');
       return;
     }
-  }, [items, router, isOrderComplete, isSubmitting]);
+  }, [items, router, isOrderComplete, isSubmitting, currentStep]);
 
   // Sync shipping address when sameAsBilling checkbox changes
   useEffect(() => {
@@ -300,13 +304,64 @@ export default function CheckoutPage() {
       // Set flag to prevent cart redirect BEFORE clearing cart
       setIsOrderComplete(true);
       
+      // Move to step 3 (confirmation) BEFORE clearing cart and fetching details
+      // This ensures the component doesn't return null due to empty cart
+      setCurrentStep(3);
+      
+      // Fetch order details for confirmation step
+      try {
+        const orderDetailsData = await getOrderDetails(Number(orderId));
+        setOrderData({
+          order: orderDetailsData.facture,
+          orderDetails: orderDetailsData.details_facture || []
+        });
+      } catch (error) {
+        console.error('Error fetching order details:', error);
+        toast.error('Erreur lors du chargement des détails de la commande');
+        // Create a minimal order object from the response if fetch fails
+        setOrderData({
+          order: {
+            id: Number(orderId),
+            numero: response.numero || `#${orderId}`,
+            nom: formData.nom,
+            prenom: formData.prenom,
+            email: formData.email,
+            phone: formData.phone,
+            pays: formData.pays,
+            region: formData.region,
+            ville: formData.ville,
+            code_postale: formData.code_postale?.toString(),
+            adresse1: formData.adresse1,
+            adresse2: formData.adresse2,
+            livraison: formData.livraison,
+            frais_livraison: shippingCost,
+            prix_ht: totalPrice,
+            prix_ttc: finalTotal,
+            etat: 'nouvelle_commande',
+            user_id: user?.id,
+            created_at: new Date().toISOString(),
+          } as Order,
+          orderDetails: items.map(item => ({
+            id: 0,
+            produit_id: item.product.id,
+            qte: item.quantity,
+            prix_unitaire: (item.product as any).prix || (item.product as any).price || 0,
+            prix_ht: ((item.product as any).prix || (item.product as any).price || 0) * item.quantity,
+            prix_ttc: ((item.product as any).prix || (item.product as any).price || 0) * item.quantity,
+            produit: {
+              id: item.product.id,
+              designation_fr: (item.product as any).designation_fr || (item.product as any).name || 'Produit',
+              cover: (item.product as any).cover,
+              slug: (item.product as any).slug,
+            }
+          }))
+        });
+      }
+      
       toast.success('Commande passée avec succès !');
       
-      // Clear cart immediately but flag prevents redirect
+      // Clear cart AFTER setting step 3 and order data
       clearCart();
-      
-      // Use replace to avoid back button issues and force navigation
-      router.replace(`/order-confirmation/${orderId}`);
     } catch (error: any) {
       console.error('Order error:', error);
       toast.error(error.response?.data?.message || 'Erreur lors de la commande. Veuillez réessayer.');
@@ -315,6 +370,342 @@ export default function CheckoutPage() {
     }
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handlePrint = () => {
+    if (!printRef.current || !orderData) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Veuillez autoriser les pop-ups pour imprimer');
+      return;
+    }
+
+    const logoUrl = 'https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp';
+    const order = orderData.order;
+    const details = orderData.orderDetails;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Commande #${order?.numero || ''}</title>
+          <style>
+            @media print {
+              @page { margin: 20mm; size: A4; }
+              body { margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000; background: #fff; }
+            }
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #1f2937; background: #fff; line-height: 1.6; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #dc2626; }
+            .logo { height: 60px; width: auto; }
+            .order-number { font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 5px; }
+            .confirmation-message { text-align: center; margin: 30px 0; padding: 20px; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; }
+            .section { margin: 30px 0; }
+            .section-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th { background: #f9fafb; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+            td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+            .summary-row { display: flex; justify-content: space-between; padding: 8px 0; }
+            .summary-total { font-weight: bold; font-size: 18px; border-top: 2px solid #e5e7eb; padding-top: 10px; margin-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <img src="${logoUrl}" alt="Logo" class="logo" />
+            <div>
+              <div class="order-number">Commande #${order?.numero || ''}</div>
+              <div>Date: ${formatDate(order?.created_at || null)}</div>
+            </div>
+          </div>
+          <div class="confirmation-message">
+            <h1>✓ Commande confirmée</h1>
+            <p>Merci pour votre commande !</p>
+          </div>
+          <div class="section">
+            <div class="section-title">Détails de la commande</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Quantité</th>
+                  <th>Prix unitaire</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${details.map((detail: any) => `
+                  <tr>
+                    <td>${detail.produit?.designation_fr || 'Produit'}</td>
+                    <td>${detail.qte || 0}</td>
+                    <td>${(detail.prix_unitaire || 0).toFixed(2)} TND</td>
+                    <td>${(detail.prix_ttc || 0).toFixed(2)} TND</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div style="margin-top: 20px;">
+              <div class="summary-row">
+                <span>Sous-total:</span>
+                <span>${(order?.prix_ht || 0).toFixed(2)} TND</span>
+              </div>
+              ${order?.frais_livraison ? `
+                <div class="summary-row">
+                  <span>Expédition:</span>
+                  <span>${order.frais_livraison} TND</span>
+                </div>
+              ` : `
+                <div class="summary-row">
+                  <span>Expédition:</span>
+                  <span style="color: #16a34a;">Livraison gratuite</span>
+                </div>
+              `}
+              <div class="summary-row summary-total">
+                <span>Total:</span>
+                <span>${(order?.prix_ttc || 0).toFixed(2)} TND</span>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
+  // Step 3: Confirmation - Show this even if cart is empty (order already placed)
+  if (currentStep === 3 && orderData) {
+    const order = orderData.order;
+    const details = orderData.orderDetails;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+        <Header />
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">1</div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Panier</span>
+              </div>
+              <div className="flex-1 h-0.5 bg-red-600 mx-4"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">2</div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Livraison et Paiement</span>
+              </div>
+              <div className="flex-1 h-0.5 bg-red-600 mx-4"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">3</div>
+                <span className="text-sm font-medium text-gray-900 dark:text-white font-semibold">Confirmation</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Confirmation Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto"
+          >
+            {/* Success Message */}
+            <Card className="mb-6 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    Commande confirmée !
+                  </h1>
+                  <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                    Merci pour votre commande #{order?.numero || ''}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                    Un email de confirmation a été envoyé à {order?.email || user?.email}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-4 mb-8 justify-center">
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                size="lg"
+                className="min-h-[48px]"
+              >
+                <Printer className="h-5 w-5 mr-2" />
+                Imprimer
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white min-h-[48px]"
+              >
+                <Link href="/account/orders">
+                  <List className="h-5 w-5 mr-2" />
+                  Voir toutes mes commandes
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="min-h-[48px]"
+              >
+                <Link href="/shop">
+                  <ArrowRight className="h-5 w-5 mr-2" />
+                  Continuer les achats
+                </Link>
+              </Button>
+            </div>
+
+            {/* Order Recap */}
+            <div ref={printRef}>
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Récapitulatif de la commande
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Order Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Numéro de commande</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">#{order?.numero || ''}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Date de commande</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{formatDate(order?.created_at || null)}</p>
+                    </div>
+                  </div>
+
+                  {/* Order Items */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Produits commandés</h3>
+                    <div className="space-y-4">
+                      {details.map((detail: any) => {
+                        const productImage = detail.produit?.cover 
+                          ? getStorageUrl(detail.produit.cover) 
+                          : null;
+                        return (
+                          <div key={detail.id} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            {productImage && (
+                              <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
+                                <Image
+                                  src={productImage}
+                                  alt={detail.produit?.designation_fr || 'Produit'}
+                                  fill
+                                  className="object-contain p-1"
+                                  sizes="80px"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {detail.produit?.designation_fr || 'Produit'}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Quantité: {detail.qte || 0}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {(detail.prix_ttc || 0).toFixed(2)} TND
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {(detail.prix_unitaire || 0).toFixed(2)} TND / unité
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Order Summary */}
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span>Sous-total</span>
+                      <span className="font-semibold">{(order?.prix_ht || 0).toFixed(2)} TND</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Expédition</span>
+                      <span className={order?.frais_livraison ? 'font-semibold' : 'text-green-600 dark:text-green-400 font-semibold'}>
+                        {order?.frais_livraison ? `${order.frais_livraison} TND` : 'Livraison gratuite'}
+                      </span>
+                    </div>
+                    <div className="border-t pt-2 flex justify-between text-lg font-bold">
+                      <span>Total</span>
+                      <span className="text-red-600 dark:text-red-400">
+                        {(order?.prix_ttc || 0).toFixed(2)} TND
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-2">Méthode de paiement</h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {paymentMethod === 'cod' ? 'Paiement à la livraison' : 'Carte Bancaire'}
+                    </p>
+                  </div>
+
+                  {/* Billing Address */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-2">Adresse de facturation</h3>
+                    <div className="text-gray-600 dark:text-gray-400">
+                      <p>{order?.nom || ''} {order?.prenom || ''}</p>
+                      <p>{order?.adresse1 || ''}</p>
+                      {order?.adresse2 && <p>{order.adresse2}</p>}
+                      <p>{order?.ville || ''}, {order?.region || ''}</p>
+                      <p>{order?.code_postale || ''}</p>
+                      <p className="mt-2">
+                        <strong>Téléphone:</strong> {order?.phone || ''}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {order?.email || ''}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Back Button */}
+            <div className="text-center">
+              <Button
+                variant="ghost"
+                onClick={() => setCurrentStep(2)}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour à l'étape précédente
+              </Button>
+            </div>
+          </motion.div>
+        </main>
+
+        <Footer />
+        <ScrollToTop />
+      </div>
+    );
+  }
+
+  // Don't show checkout form if cart is empty (unless we're on step 3, which is handled above)
   if (items.length === 0) {
     return null;
   }
@@ -328,24 +719,40 @@ export default function CheckoutPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 1 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
                 1
               </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Panier</span>
+              <span className={`text-sm font-medium ${
+                currentStep >= 1 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
+              }`}>Panier</span>
             </div>
-            <div className="flex-1 h-0.5 bg-red-600 mx-4"></div>
+            <div className={`flex-1 h-0.5 mx-4 ${
+              currentStep >= 2 ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-700'
+            }`}></div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 2 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
                 2
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-white font-semibold">Livraison et Paiement</span>
+              <span className={`text-sm font-medium ${
+                currentStep >= 2 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
+              }`}>Livraison et Paiement</span>
             </div>
-            <div className="flex-1 h-0.5 bg-gray-300 dark:bg-gray-700 mx-4"></div>
+            <div className={`flex-1 h-0.5 mx-4 ${
+              currentStep >= 3 ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-700'
+            }`}></div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex items-center justify-center font-bold text-sm">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 3 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
                 3
               </div>
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Confirmation</span>
+              <span className={`text-sm font-medium ${
+                currentStep >= 3 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
+              }`}>Confirmation</span>
             </div>
           </div>
         </div>
@@ -358,11 +765,11 @@ export default function CheckoutPage() {
         >
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => currentStep === 2 ? router.push('/cart') : setCurrentStep(2)}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour au panier
+            {currentStep === 2 ? 'Retour au panier' : 'Retour'}
           </Button>
         </motion.div>
 

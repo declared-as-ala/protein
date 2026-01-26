@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift, Loader2, MessageCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
@@ -12,6 +12,26 @@ import { toast } from 'sonner';
 export function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  // Lazy load Google Maps only when footer is visible (Intersection Observer)
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setShouldLoadMap(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // Start loading 200px before footer is visible
+    );
+    
+    observer.observe(mapRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,8 +111,8 @@ export function Footer() {
             
             {/* Contact Details */}
             <div className="space-y-3">
-              <a href="tel:+21673200500" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors">
-                <Phone className="h-5 w-5 text-red-500" />
+              <a href="tel:+21673200500" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
+                <Phone className="h-5 w-5 text-red-500" aria-hidden="true" />
                 <span>+216 73 200 500 / +216 73 200 169</span>
               </a>
               <a href="mailto:contact@protein.tn" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors">
@@ -310,19 +330,26 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Map Section */}
-        <div className="mt-12">
+        {/* Map Section - Deferred loading for performance */}
+        <div className="mt-12" ref={mapRef}>
           <h3 className="font-semibold text-white mb-4">Géolocalisation</h3>
           <div className="rounded-xl overflow-hidden h-64 bg-gray-800">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3235.786044474428!2d10.608766315195954!3d35.82829698016563!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd8b4e8e8e8e8f%3A0x8e8e8e8e8e8e8e8e!2sSousse%2C%20Tunisia!5e0!3m2!1sen!2stn!4v1642509876543!5m2!1sen!2stn"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              title="Protein.tn Location"
-            ></iframe>
+            {shouldLoadMap ? (
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3235.786044474428!2d10.608766315195954!3d35.82829698016563!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd8b4e8e8e8e8f%3A0x8e8e8e8e8e8e8e8e!2sSousse%2C%20Tunisia!5e0!3m2!1sen!2stn!4v1642509876543!5m2!1sen!2stn"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                title="Protein.tn Location"
+              ></iframe>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <MapPin className="h-12 w-12" aria-hidden="true" />
+                <span className="sr-only">Carte de localisation</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

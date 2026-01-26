@@ -96,14 +96,14 @@ export function TestimonialsSection() {
                     loading="lazy"
                 />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    {testimonial.name}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {testimonial.role}
-                  </p>
-                </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                        {testimonial.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {testimonial.role}
+                      </p>
+                    </div>
               </div>
 
               {/* Decorative Element */}

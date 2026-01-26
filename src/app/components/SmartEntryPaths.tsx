@@ -61,18 +61,9 @@ export function SmartEntryPaths() {
               <article key={path.id} className="group relative">
                 <Link href={path.link} aria-label={`Découvrir les produits pour ${path.title}`}>
                   <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-800`}>
-                    {/* Background Image with Overlay */}
-                    <div className="absolute inset-0">
-                      <Image
-                        src={path.image}
-                        alt=""
-                        fill
-                        className="object-cover opacity-20 group-hover:opacity-30 transition-opacity"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        loading="lazy"
-                        quality={75}
-                        aria-hidden="true"
-                      />
+                    {/* Background Image with Overlay - Deferred loading for performance */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
+                      {/* Remove external Unsplash images - use gradient background instead for better performance */}
                     </div>
 
                     {/* Content */}

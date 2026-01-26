@@ -17,6 +17,15 @@ export const metadata: Metadata = {
   },
 };
 
+// Preload critical hero image for LCP optimization
+export function generateViewport() {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  };
+}
+
 async function getHomeData(): Promise<{ accueil: AccueilData; slides: any[] }> {
   try {
     const [accueil, slides] = await Promise.all([

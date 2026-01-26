@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Header } from '@/app/components/Header';
 import { PremiumTopBar } from '@/app/components/PremiumTopBar';
@@ -10,21 +11,28 @@ import { CategoryGrid } from '@/app/components/CategoryGrid';
 import { ProductSection } from '@/app/components/ProductSection';
 import type { AccueilData, Product } from '@/types';
 import { getStorageUrl } from '@/services/api';
+import { LoadingSpinner } from '@/app/components/LoadingSpinner';
 
-// Lazy load non-critical components
+// Lazy load non-critical below-the-fold components
 const PromoBanner = dynamic(() => import('@/app/components/PromoBanner').then(mod => ({ default: mod.PromoBanner })), {
   ssr: false,
+  loading: () => null, // Don't show loading for banner
 });
 const BrandsSection = dynamic(() => import('@/app/components/BrandsSection').then(mod => ({ default: mod.BrandsSection })), {
   ssr: false,
+  loading: () => null,
 });
 const TestimonialsSection = dynamic(() => import('@/app/components/TestimonialsSection').then(mod => ({ default: mod.TestimonialsSection })), {
   ssr: false,
+  loading: () => null,
 });
 const BlogSection = dynamic(() => import('@/app/components/BlogSection').then(mod => ({ default: mod.BlogSection })), {
   ssr: false,
+  loading: () => null,
 });
-const Footer = dynamic(() => import('@/app/components/Footer').then(mod => ({ default: mod.Footer })));
+const Footer = dynamic(() => import('@/app/components/Footer').then(mod => ({ default: mod.Footer })), {
+  loading: () => <div className="h-64 bg-gray-50 dark:bg-gray-900" />, // Placeholder height
+});
 const ScrollToTop = dynamic(() => import('@/app/components/ScrollToTop').then(mod => ({ default: mod.ScrollToTop })), {
   ssr: false,
 });
@@ -35,8 +43,8 @@ interface HomePageClientProps {
 }
 
 export function HomePageClient({ accueil, slides }: HomePageClientProps) {
-  // Transform API products to match ProductCard expectations
-  const transformProduct = (product: Product) => ({
+  // Memoize product transformations to prevent unnecessary recalculations
+  const transformProduct = useMemo(() => (product: Product) => ({
     id: product.id,
     name: product.designation_fr,
     price: product.promo && product.promo_expiration_date ? product.promo : product.prix,
@@ -44,7 +52,6 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
     image: product.cover ? getStorageUrl(product.cover) : undefined,
     category: product.sous_categorie?.designation_fr || '',
     slug: product.slug,
-    // Map API fields to component expectations
     designation_fr: product.designation_fr,
     prix: product.prix,
     promo: product.promo,
@@ -52,12 +59,24 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
     new_product: product.new_product,
     best_seller: product.best_seller,
     note: product.note,
-  });
+  }), []);
 
-  const newProducts = (accueil.new_product || []).slice(0, 8).map(transformProduct);
-  const bestSellers = (accueil.best_sellers || []).slice(0, 4).map(transformProduct);
-  const packs = (accueil.packs || []).slice(0, 4).map(transformProduct);
-  const flashSales = (accueil.ventes_flash || []).slice(0, 4).map(transformProduct);
+  const newProducts = useMemo(() => 
+    (accueil.new_product || []).slice(0, 8).map(transformProduct),
+    [accueil.new_product, transformProduct]
+  );
+  const bestSellers = useMemo(() => 
+    (accueil.best_sellers || []).slice(0, 4).map(transformProduct),
+    [accueil.best_sellers, transformProduct]
+  );
+  const packs = useMemo(() => 
+    (accueil.packs || []).slice(0, 4).map(transformProduct),
+    [accueil.packs, transformProduct]
+  );
+  const flashSales = useMemo(() => 
+    (accueil.ventes_flash || []).slice(0, 4).map(transformProduct),
+    [accueil.ventes_flash, transformProduct]
+  );
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -65,11 +84,13 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
       <Header />
       
       <main>
+        {/* Above the fold - Critical content */}
         <HeroSlider slides={slides} />
         <SmartEntryPaths />
         <FeaturesSection />
         <CategoryGrid categories={accueil.categories || []} />
         
+        {/* Product sections */}
         {newProducts.length > 0 && (
           <ProductSection
             id="products"
@@ -110,13 +131,24 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
           />
         )}
         
-        <PromoBanner />
-        <BrandsSection />
-        <TestimonialsSection />
-        <BlogSection articles={accueil.last_articles || []} />
+        {/* Below the fold - Lazy loaded */}
+        <Suspense fallback={null}>
+          <PromoBanner />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BrandsSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TestimonialsSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BlogSection articles={accueil.last_articles || []} />
+        </Suspense>
       </main>
       
-      <Footer />
+      <Suspense fallback={<div className="h-64 bg-gray-50 dark:bg-gray-900" />}>
+        <Footer />
+      </Suspense>
       <ScrollToTop />
     </div>
   );

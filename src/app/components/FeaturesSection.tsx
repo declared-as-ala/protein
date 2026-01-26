@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { Truck, Shield, CreditCard, Headphones } from 'lucide-react';
 
 const features = [
@@ -28,19 +27,16 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-12 bg-white dark:bg-gray-950 border-y border-gray-200 dark:border-gray-800">
+    <section className="py-12 bg-white dark:bg-gray-950 border-y border-gray-200 dark:border-gray-800" aria-labelledby="features-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 id="features-heading" className="sr-only">Nos avantages</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
-            <motion.div
+          {features.map((feature) => (
+            <div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
               className="flex flex-col items-center text-center group"
             >
-              <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4 group-hover:bg-red-600 dark:group-hover:bg-red-600 transition-colors">
+              <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4 group-hover:bg-red-600 dark:group-hover:bg-red-600 transition-colors" aria-hidden="true">
                 <feature.icon className="h-8 w-8 text-red-600 dark:text-red-500 group-hover:text-white transition-colors" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -49,7 +45,7 @@ export function FeaturesSection() {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {feature.description}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

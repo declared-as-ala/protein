@@ -17,38 +17,23 @@ export function CategoryGrid({ categories = [] }: CategoryGridProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4"
-          >
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Nos Catégories
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-          >
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Explorez notre large gamme de produits pour tous vos objectifs
-          </motion.p>
+          </p>
         </div>
 
         {/* Categories Grid */}
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category, index) => (
-              <motion.div
+              <article
                 key={category.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
                 className="group relative h-64 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
               >
-                <Link href={`/shop?category=${category.slug}`}>
+                <Link href={`/shop?category=${category.slug}`} aria-label={`Voir les produits de ${category.designation_fr}`}>
                   {/* Background Image Container */}
                   <div className="absolute inset-0">
                     {category.cover ? (
@@ -58,19 +43,20 @@ export function CategoryGrid({ categories = [] }: CategoryGridProps) {
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        loading="lazy"
+                        quality={75}
                         onError={(e) => {
-                          // Fallback to gradient if image fails to load
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                         }}
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800" aria-hidden="true" />
                     )}
                   </div>
                   
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" aria-hidden="true" />
                   
                   {/* Content */}
                   <div className="relative h-full flex flex-col justify-end p-6">
@@ -84,9 +70,9 @@ export function CategoryGrid({ categories = [] }: CategoryGridProps) {
                   </div>
 
                   {/* Hover Effect */}
-                  <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-red-500 rounded-2xl transition-all pointer-events-none" />
+                  <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-red-500 rounded-2xl transition-all pointer-events-none" aria-hidden="true" />
                 </Link>
-              </motion.div>
+              </article>
             ))}
           </div>
         ) : (

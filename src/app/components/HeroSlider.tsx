@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -36,16 +36,45 @@ interface HeroSliderProps {
   slides?: any[];
 }
 
-export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
+// Lazy-loaded slide image component
+const LazySlideImage = memo(({ 
+  src, 
+  alt, 
+  isFirst, 
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  isFirst: boolean;
+  className?: string;
+}) => {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      priority={isFirst}
+      fetchPriority={isFirst ? "high" : "auto"}
+      className={className || 'object-cover'}
+      sizes="100vw"
+      quality={isFirst ? 90 : 75}
+      loading={isFirst ? undefined : "lazy"}
+    />
+  );
+});
+LazySlideImage.displayName = 'LazySlideImage';
+
+export const HeroSlider = memo(function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0])); // Preload first slide
 
-  // Modify slides to use photo.jpg as the first image
+  // Modify slides to use photo.avif as the first image
   const modifiedSlides = useMemo(() => {
     if (!slides || slides.length === 0) return defaultSlides;
     
     const slidesCopy = [...slides];
-    // Always use /photo.jpg for the first slide
+    // Always use /photo.avif for the first slide
     if (slidesCopy[0]) {
       slidesCopy[0] = {
         ...slidesCopy[0],
@@ -60,6 +89,16 @@ export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
     setIsClient(true);
   }, []);
 
+  // Preload next slide when current slide changes
+  useEffect(() => {
+    if (!isClient || modifiedSlides.length === 0) return;
+    
+    const nextIndex = (currentSlide + 1) % modifiedSlides.length;
+    if (!loadedSlides.has(nextIndex)) {
+      setLoadedSlides(prev => new Set([...prev, nextIndex]));
+    }
+  }, [currentSlide, isClient, modifiedSlides.length, loadedSlides]);
+
   useEffect(() => {
     if (!isClient || modifiedSlides.length === 0) return;
     const timer = setInterval(() => {
@@ -67,7 +106,7 @@ export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [isClient, modifiedSlides]);
+  }, [isClient, modifiedSlides.length]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % modifiedSlides.length);
@@ -77,86 +116,67 @@ export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
     setCurrentSlide((prev) => (prev - 1 + modifiedSlides.length) % modifiedSlides.length);
   };
 
+  const currentSlideData = modifiedSlides[currentSlide];
+  const imageSrc = currentSlideData?.image || (currentSlideData?.cover ? getStorageUrl(currentSlideData.cover) : defaultSlides[0].image);
+  const isFirstSlide = currentSlide === 0;
+
   return (
-    <div className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900">
+    <section className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900" aria-label="Hero carousel">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.5 }}
           className="absolute inset-0"
         >
-          {/* Background Image */}
-          <Image
-            src={modifiedSlides[currentSlide]?.image || (modifiedSlides[currentSlide]?.cover ? getStorageUrl(modifiedSlides[currentSlide].cover) : defaultSlides[0].image)}
-            alt={modifiedSlides[currentSlide]?.titre || modifiedSlides[currentSlide]?.title || 'Slide'}
-            fill
-            priority={currentSlide === 0}
-            className={modifiedSlides[currentSlide]?.image === '/photo.avif' ? 'object-cover scale-[0.85]' : 'object-cover'}
-            sizes="100vw"
-            quality={85}
-            onError={(e) => {
-              // Fallback to default image if current slide image fails
-              const target = e.target as HTMLImageElement;
-              if (target.src !== defaultSlides[0].image) {
-                target.src = defaultSlides[0].image;
-              }
-            }}
-          />
+          {/* Background Image - Only render if loaded or is first slide */}
+          {(isFirstSlide || loadedSlides.has(currentSlide)) && (
+            <LazySlideImage
+              src={imageSrc}
+              alt={currentSlideData?.titre || currentSlideData?.title || 'Slide'}
+              isFirst={isFirstSlide}
+              className={currentSlideData?.image === '/photo.avif' ? 'object-cover scale-[0.85]' : 'object-cover'}
+            />
+          )}
           
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" aria-hidden="true" />
 
           {/* Content */}
           <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
               className="max-w-2xl"
             >
-              <motion.h1
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-                className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
-              >
-                {modifiedSlides[currentSlide]?.titre || modifiedSlides[currentSlide]?.title || 'Protéines & Whey Premium'}
-              </motion.h1>
-              <motion.p
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.6 }}
-                className="text-lg md:text-xl text-gray-200 mb-8 max-w-xl"
-              >
-                {modifiedSlides[currentSlide]?.description || 'Des protéines de qualité supérieure pour maximiser vos gains musculaires'}
-              </motion.p>
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.9, duration: 0.6 }}
-                className="flex flex-wrap gap-4"
-              >
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                {currentSlideData?.titre || currentSlideData?.title || 'Protéines & Whey Premium'}
+              </h1>
+              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-xl">
+                {currentSlideData?.description || 'Des protéines de qualité supérieure pour maximiser vos gains musculaires'}
+              </p>
+              <div className="flex flex-wrap gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base"
+                  className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base min-h-[48px] min-w-[120px]"
                   asChild
                 >
-                  <Link href={modifiedSlides[currentSlide]?.lien || modifiedSlides[currentSlide]?.link || '/shop'}>
-                    {modifiedSlides[currentSlide]?.cta || 'Découvrir'}
+                  <Link href={currentSlideData?.lien || currentSlideData?.link || '/shop'}>
+                    {currentSlideData?.cta || 'Découvrir'}
                   </Link>
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base"
+                  className="border-white text-white hover:bg-white hover:text-black px-8 h-12 text-base min-h-[48px] min-w-[160px]"
                   asChild
                 >
                   <Link href="/shop">Voir Catégories</Link>
                 </Button>
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </motion.div>
@@ -165,32 +185,37 @@ export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-        aria-label="Previous slide"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
+        aria-label="Slide précédent"
+        type="button"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-6 w-6" aria-hidden="true" />
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-        aria-label="Next slide"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
+        aria-label="Slide suivant"
+        type="button"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-6 w-6" aria-hidden="true" />
       </button>
 
       {/* Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3" role="tablist" aria-label="Indicateurs de diapositives">
         {modifiedSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`h-2 rounded-full transition-all ${
-              index === currentSlide ? 'w-12 bg-red-600' : 'w-2 bg-white/50 hover:bg-white/75'
+            role="tab"
+            aria-selected={index === currentSlide}
+            aria-label={`Aller à la diapositive ${index + 1}`}
+            className={`h-3 rounded-full transition-all min-w-[12px] ${
+              index === currentSlide ? 'w-12 bg-red-600' : 'w-3 bg-white/50 hover:bg-white/75'
             }`}
-            aria-label={`Go to slide ${index + 1}`}
+            type="button"
           />
         ))}
       </div>
-    </div>
+    </section>
   );
-}
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { memo } from 'react';
 import Link from 'next/link';
 import { ProductCard } from './ProductCard';
 import { Product as DataProduct } from '@/data/products';
@@ -19,7 +19,7 @@ interface ProductSectionProps {
   id?: string;
 }
 
-export function ProductSection({
+export const ProductSection = memo(function ProductSection({
   title,
   subtitle,
   products,
@@ -33,40 +33,24 @@ export function ProductSection({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 md:mb-14">
           <div className="mb-4 md:mb-0">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
-            >
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
               {title}
-            </motion.h2>
+            </h2>
             {subtitle && (
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="text-lg md:text-xl text-gray-600 dark:text-gray-400"
-              >
+              <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400">
                 {subtitle}
-              </motion.p>
+              </p>
             )}
           </div>
           
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="hidden sm:block"
-          >
-            <Button variant="outline" className="group" asChild>
-              <Link href="/shop">
-              Voir tout
-              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          <div className="hidden sm:block">
+            <Button variant="outline" className="group min-h-[44px]" asChild>
+              <Link href="/shop" aria-label="Voir tous les produits">
+                Voir tout
+                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </Link>
             </Button>
-          </motion.div>
+          </div>
         </div>
 
         {/* Products Grid - Optimized for mobile */}
@@ -83,4 +67,4 @@ export function ProductSection({
       </div>
     </section>
   );
-}
+});

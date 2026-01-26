@@ -29,7 +29,7 @@ type Product = ApiProduct | {
   promo_expiration_date?: string;
   note?: number;
 };
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -37,36 +37,53 @@ interface ProductCardProps {
   badgeText?: string;
 }
 
-export function ProductCard({ product, showBadge, badgeText }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, showBadge, badgeText }: ProductCardProps) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Parse prices - support both old and new product types
-  const productName = (product as any).name || product.designation_fr || '';
-  const productSlug = product.slug || '';
-  const productImage = (product as any).image || (product.cover ? getStorageUrl(product.cover) : '');
-  const basePrice = (product as any).price || product.prix || 0;
-  const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
-  const oldPrice = basePrice;
-  const newPrice = promoPrice || basePrice;
-  const discount = promoPrice && basePrice ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
-  const isNew = product.new_product === 1;
-  const isBestSeller = product.best_seller === 1;
-  const rating = product.note || 0;
-  // Check if product is in stock: rupture === 1 means in stock, !== 1 means out of stock
-  const isInStock = (product as any).rupture === 1 || (product as any).rupture === undefined;
+  // Memoize computed values to prevent unnecessary recalculations
+  const productData = useMemo(() => {
+    const name = (product as any).name || product.designation_fr || '';
+    const slug = product.slug || '';
+    const image = (product as any).image || (product.cover ? getStorageUrl(product.cover) : '');
+    const basePrice = (product as any).price || product.prix || 0;
+    const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
+    const newPrice = promoPrice || basePrice;
+    const discount = promoPrice && basePrice ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
+    const isNew = product.new_product === 1;
+    const isBestSeller = product.best_seller === 1;
+    const rating = product.note || 0;
+    const isInStock = (product as any).rupture === 1 || (product as any).rupture === undefined;
+    
+    return {
+      name,
+      slug,
+      image,
+      basePrice,
+      promoPrice,
+      newPrice,
+      oldPrice: basePrice,
+      discount,
+      isNew,
+      isBestSeller,
+      rating,
+      isInStock,
+    };
+  }, [product]);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Check if product is out of stock
-    if (!isInStock) {
+    if (!productData.isInStock) {
       toast.error('Rupture de stock');
       return;
     }
@@ -75,33 +92,33 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
     addToCart(product as any);
     toast.success('Produit ajouté au panier');
     setTimeout(() => setIsAdding(false), 500);
-  };
+  }, [productData.isInStock, addToCart, product]);
 
   const cardContent = (
     <>
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-        {!isInStock && (
+        {!productData.isInStock && (
           <Badge className="bg-gray-600 text-white hover:bg-gray-700 font-semibold">
             Rupture de stock
           </Badge>
         )}
-        {isInStock && discount > 0 && (
+        {productData.isInStock && productData.discount > 0 && (
           <Badge className="bg-red-600 text-white hover:bg-red-700 font-semibold">
-            -{discount}%
+            -{productData.discount}%
           </Badge>
         )}
-        {isInStock && showBadge && badgeText && (
+        {productData.isInStock && showBadge && badgeText && (
           <Badge className="bg-green-600 text-white hover:bg-green-700 font-semibold">
             {badgeText}
           </Badge>
         )}
-        {isInStock && !showBadge && isNew && (
+        {productData.isInStock && !showBadge && productData.isNew && (
           <Badge className="bg-blue-600 text-white hover:bg-blue-700 font-semibold">
             New
           </Badge>
         )}
-        {isInStock && !showBadge && isBestSeller && (
+        {productData.isInStock && !showBadge && productData.isBestSeller && (
           <Badge className="bg-yellow-600 text-white hover:bg-yellow-700 font-semibold">
             Top Vendu
           </Badge>
@@ -110,34 +127,31 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
 
       {/* Image Container */}
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
-        <Link href={`/products/${productSlug || product.id}`}>
-          {productImage ? (
+        <Link href={`/products/${productData.slug || product.id}`} aria-label={`Voir ${productData.name}`}>
+          {productData.image ? (
             <Image
-              src={productImage}
-              alt={productName}
+              src={productData.image}
+              alt={productData.name}
               width={400}
               height={400}
               className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
               loading="lazy"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              quality={75}
               onError={(e) => {
-                // Hide broken image and show placeholder
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
-                if (parent) {
+                if (parent && !parent.querySelector('.error-placeholder')) {
                   const placeholder = document.createElement('div');
-                  placeholder.className = 'w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700';
-                  placeholder.innerHTML = '<svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>';
-                  if (!parent.querySelector('.error-placeholder')) {
-                    placeholder.classList.add('error-placeholder');
-                    parent.appendChild(placeholder);
-                  }
+                  placeholder.className = 'error-placeholder w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700';
+                  placeholder.innerHTML = '<svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>';
+                  parent.appendChild(placeholder);
                 }
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700" aria-hidden="true">
               <ShoppingCart className="h-12 w-12 text-gray-400" />
             </div>
           )}
@@ -147,12 +161,13 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <Button
             size="sm"
-            className={`w-full ${isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white`}
+            className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white`}
             onClick={handleAddToCart}
-            disabled={isAdding || !isInStock}
+            disabled={isAdding || !productData.isInStock}
+            aria-label={`Ajouter ${productData.name} au panier`}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            {!isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
+            <ShoppingCart className="h-4 w-4 mr-2" aria-hidden="true" />
+            {!productData.isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
           </Button>
         </div>
       </div>
@@ -160,9 +175,9 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
       {/* Content */}
       <div className="p-4">
         {/* Product Name */}
-        <Link href={`/products/${productSlug || product.id}`} className="block mb-2">
+        <Link href={`/products/${productData.slug || product.id}`} className="block mb-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
-            {productName}
+            {productData.name}
           </h3>
         </Link>
 
@@ -179,49 +194,51 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
         </div>
 
         {/* Rating */}
-        {rating > 0 && (
-          <div className="flex items-center gap-1 mb-3">
+        {productData.rating > 0 && (
+          <div className="flex items-center gap-1 mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5`}>
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 className={`h-4 w-4 ${
-                  i < Math.floor(rating) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
+                  i < Math.floor(productData.rating) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
                 }`}
+                aria-hidden="true"
               />
             ))}
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">({rating.toFixed(1)})</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">({productData.rating.toFixed(1)})</span>
           </div>
         )}
 
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {oldPrice && newPrice && oldPrice !== newPrice ? (
-            <>
-              <span className="text-lg font-bold text-red-600 dark:text-red-500">
-                {newPrice} DT
+          <div className="flex items-center gap-2">
+            {productData.oldPrice && productData.newPrice && productData.oldPrice !== productData.newPrice ? (
+              <>
+                <span className="text-lg font-bold text-red-600 dark:text-red-500">
+                  {productData.newPrice} DT
+                </span>
+                <span className="text-sm text-gray-400 line-through" aria-label={`Prix original: ${productData.oldPrice} DT`}>
+                  {productData.oldPrice} DT
+                </span>
+              </>
+            ) : (
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                {productData.newPrice || productData.oldPrice} DT
               </span>
-              <span className="text-sm text-gray-400 line-through">
-                {oldPrice} DT
-              </span>
-            </>
-          ) : (
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
-              {newPrice || oldPrice} DT
-            </span>
-          )}
-        </div>
+            )}
+          </div>
         </div>
 
         {/* Add to Cart Button - Always visible on mobile */}
         <Button
           size="sm"
-          className={`w-full ${isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white md:hidden`}
+          className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white md:hidden`}
           onClick={handleAddToCart}
-          disabled={isAdding || !isInStock}
+          disabled={isAdding || !productData.isInStock}
+          aria-label={`Ajouter ${productData.name} au panier`}
         >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          {!isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
+          <ShoppingCart className="h-4 w-4 mr-2" aria-hidden="true" />
+          {!productData.isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
         </Button>
       </div>
 
@@ -233,17 +250,17 @@ export function ProductCard({ product, showBadge, badgeText }: ProductCardProps)
   const className = "group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500";
 
   if (isMobile) {
-    return <div className={className}>{cardContent}</div>;
+    return <article className={className}>{cardContent}</article>;
   }
 
   return (
-    <motion.div
+    <motion.article
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      viewport={{ once: true, margin: "50px" }}
       className={className}
     >
       {cardContent}
-    </motion.div>
+    </motion.article>
   );
-}
+});

@@ -255,8 +255,8 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
 
   return (
     <motion.article
-      initial={isMobile ? false : { opacity: 0, y: 20 }}
-      whileInView={isMobile ? false : { opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "50px" }}
       transition={{ duration: 0.2 }}
       className={className}

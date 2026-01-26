@@ -54,8 +54,8 @@ export function SmartEntryPaths() {
           </p>
         </div>
 
-        {/* Mobile: Horizontal scroll, Desktop: Grid */}
-        <div className="md:grid md:grid-cols-3 md:gap-6 lg:gap-8">
+        {/* Mobile: Horizontal scroll, Tablet: 2 columns, Desktop: 3 columns centered */}
+        <div className="max-w-6xl mx-auto">
           {/* Mobile horizontal scroll */}
           <div className="flex md:hidden gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-4 px-4">
             {entryPaths.map((path) => {
@@ -90,32 +90,41 @@ export function SmartEntryPaths() {
             })}
           </div>
           
-          {/* Desktop grid - Better proportions on large screens */}
-          <div className="hidden md:grid md:grid-cols-3 md:gap-6 lg:gap-8">
+          {/* Tablet: 2 columns, Desktop: 3 columns centered grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 lg:gap-6">
             {entryPaths.map((path) => {
               const Icon = path.icon;
               return (
                 <article key={path.id} className="group relative">
                   <Link href={path.link} aria-label={`Découvrir les produits pour ${path.title}`}>
-                    <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-800 min-h-[320px] max-h-[400px]`}>
+                    <div className={`relative h-full bg-gradient-to-br ${path.bgGradient} rounded-xl lg:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-800 hover:-translate-y-1`}>
                       <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900" />
-                      <div className="relative p-6 lg:p-8 h-full flex flex-col">
-                        <div className={`mb-4 lg:mb-6 w-14 h-14 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl bg-gradient-to-br ${path.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform flex-shrink-0`} aria-hidden="true">
-                          <Icon className="h-7 w-7 lg:h-8 lg:w-8 text-white" />
+                      <div className="relative p-5 lg:p-6 h-full flex flex-col">
+                        {/* Icon - Smaller on desktop, top-left */}
+                        <div className={`mb-3 lg:mb-4 w-12 h-12 lg:w-14 lg:h-14 rounded-lg lg:rounded-xl bg-gradient-to-br ${path.gradient} flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0`} aria-hidden="true">
+                          <Icon className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
                         </div>
-                        <h3 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2 lg:mb-3 flex-shrink-0">
+                        
+                        {/* Title - One line on desktop */}
+                        <h3 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-2 lg:mb-3 flex-shrink-0 line-clamp-1">
                           {path.title}
                         </h3>
-                        <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-4 lg:mb-6 flex-1 overflow-hidden">
-                          <span className="line-clamp-3 lg:line-clamp-4">{path.description}</span>
+                        
+                        {/* Description - Max 2 lines on desktop */}
+                        <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-4 lg:mb-5 flex-1 line-clamp-2">
+                          {path.description}
                         </p>
-                        <Button
-                          className={`bg-gradient-to-r ${path.gradient} hover:opacity-90 text-white w-full min-h-[44px] lg:min-h-[48px] mt-auto flex-shrink-0 sm:group-hover:translate-x-2 transition-colors`}
-                          size="lg"
-                        >
-                          Découvrir
-                          <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                        </Button>
+                        
+                        {/* CTA Button - Smaller, inline */}
+                        <div className="mt-auto flex-shrink-0">
+                          <Button
+                            className={`bg-gradient-to-r ${path.gradient} hover:opacity-90 text-white w-full h-9 lg:h-10 text-sm lg:text-base group-hover:translate-x-1 transition-all`}
+                            size="sm"
+                          >
+                            Découvrir
+                            <ArrowRight className="h-4 w-4 lg:h-5 lg:w-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </Link>

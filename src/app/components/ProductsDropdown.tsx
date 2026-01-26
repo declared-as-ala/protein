@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
+import { getCategories } from '@/services/api';
+import { Category } from '@/types';
 
 const menuCategories = [
   {
@@ -77,6 +79,42 @@ const menuCategories = [
   },
 ];
 
+// Helper to convert name to slug format
+const nameToSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .trim();
+};
+
+// Helper to find category by name
+const findCategoryByName = (name: string, categories: Category[]): Category | null => {
+  const normalizedName = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  return categories.find(cat => 
+    cat.designation_fr.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedName
+  ) || null;
+};
+
+// Helper to find subcategory by name
+const findSubCategoryByName = (name: string, categories: Category[]): { slug: string; name: string } | null => {
+  const normalizedName = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  
+  for (const category of categories) {
+    if (category.sous_categories) {
+      const found = category.sous_categories.find((sub: any) => 
+        sub.designation_fr.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedName
+      );
+      if (found) {
+        return { slug: found.slug, name: found.designation_fr };
+      }
+    }
+  }
+  return null;
+};
+
 export function ProductsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -84,9 +122,12 @@ export function ProductsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    // Fetch categories to get slugs
+    getCategories().then(setCategories).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -138,33 +179,56 @@ export function ProductsDropdown() {
       onMouseLeave={handleMouseLeave}
     >
       <div className="grid grid-cols-3 gap-6">
-        {menuCategories.map((category, index) => (
-          <div key={index} className="space-y-2 min-w-0">
-            <h3 className="font-semibold text-xs text-red-600 dark:text-red-500 mb-2 leading-tight">
-              {category.title}
-            </h3>
-            <ul className="space-y-1">
-              {category.items.map((item, itemIndex) => (
-                <li key={itemIndex}>
-                  <Link
-                    href={`/shop?category=${encodeURIComponent(item)}`}
-                    className="text-xs text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition-colors block py-0.5 break-words"
-                    onMouseDown={(e) => {
-                      // Prevent blur from closing menu when clicking
-                      e.preventDefault();
-                    }}
-                    onClick={() => {
-                      // Close menu after navigation
-                      setTimeout(() => setIsOpen(false), 100);
-                    }}
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {menuCategories.map((category, index) => {
+          // Find the category by title to get its slug
+          const categoryData = findCategoryByName(category.title, categories);
+          const categorySlug = categoryData?.slug || nameToSlug(category.title);
+          
+          return (
+            <div key={index} className="space-y-2 min-w-0">
+              {/* Category title - link to category page using slug */}
+              <Link
+                href={`/shop?category=${encodeURIComponent(categorySlug)}`}
+                className="font-semibold text-xs text-red-600 dark:text-red-500 mb-2 leading-tight hover:underline block"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                }}
+                onClick={() => {
+                  setTimeout(() => setIsOpen(false), 100);
+                }}
+              >
+                {category.title}
+              </Link>
+              <ul className="space-y-1">
+                {category.items.map((item, itemIndex) => {
+                  // Try to find subcategory by name first
+                  const subCategory = findSubCategoryByName(item, categories);
+                  // Use subcategory slug if found, otherwise convert name to slug
+                  const itemSlug = subCategory?.slug || nameToSlug(item);
+                  
+                  return (
+                    <li key={itemIndex}>
+                      <Link
+                        href={`/shop?category=${encodeURIComponent(itemSlug)}`}
+                        className="text-xs text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition-colors block py-0.5 break-words"
+                        onMouseDown={(e) => {
+                          // Prevent blur from closing menu when clicking
+                          e.preventDefault();
+                        }}
+                        onClick={() => {
+                          // Close menu after navigation
+                          setTimeout(() => setIsOpen(false), 100);
+                        }}
+                      >
+                        {item}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </div>
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
         <Link

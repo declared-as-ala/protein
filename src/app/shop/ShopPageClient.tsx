@@ -14,7 +14,7 @@ import { motion } from 'motion/react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 import { Pagination } from '@/app/components/ui/pagination';
 import type { Product, Category, Brand } from '@/types';
-import { searchProducts, getProductsByCategory, getProductsByBrand } from '@/services/api';
+import { searchProducts, getProductsByCategory, getProductsBySubCategory, getProductsByBrand } from '@/services/api';
 import { getStorageUrl } from '@/services/api';
 
 interface ShopPageClientProps {
@@ -59,20 +59,64 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
     }
   }, [searchParams]);
 
-  // Get unique subcategories from products
+  // Get unique subcategories from ALL products (not just filtered) for proper mapping
   const subCategories = useMemo(() => {
-    const subs = new Map<string, { id: number; name: string; categoryId?: number }>();
-    products.forEach(p => {
+    const subs = new Map<string, { id: number; name: string; slug: string; categoryId?: number }>();
+    const allProducts = productsData.products || [];
+    allProducts.forEach(p => {
       if (p.sous_categorie) {
-        subs.set(p.sous_categorie.id.toString(), {
-          id: p.sous_categorie.id,
-          name: p.sous_categorie.designation_fr,
-          categoryId: p.sous_categorie.categorie_id,
-        });
+        const key = p.sous_categorie.id.toString();
+        if (!subs.has(key)) {
+          subs.set(key, {
+            id: p.sous_categorie.id,
+            name: p.sous_categorie.designation_fr,
+            slug: p.sous_categorie.slug,
+            categoryId: p.sous_categorie.categorie_id,
+          });
+        }
       }
     });
     return Array.from(subs.values());
-  }, [products]);
+  }, [productsData.products]);
+
+  // Helper to normalize strings for comparison (remove accents, lowercase, remove extra spaces)
+  const normalizeString = (str: string): string => {
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+  };
+
+  // Convert name to slug format (e.g., "Gainers Haute Énergie" -> "gainers-haute-energie")
+  const nameToSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+      .trim();
+  };
+
+  // Find subcategory by name (case-insensitive, accent-insensitive, flexible matching)
+  const findSubCategoryByName = (name: string): { id: number; name: string; slug: string } | null => {
+    const normalizedName = normalizeString(name);
+    
+    // First try exact match
+    let found = subCategories.find(sub => normalizeString(sub.name) === normalizedName);
+    
+    // If no exact match, try partial match (contains)
+    if (!found) {
+      found = subCategories.find(sub => 
+        normalizeString(sub.name).includes(normalizedName) || 
+        normalizedName.includes(normalizeString(sub.name))
+      );
+    }
+    
+    return found ? { id: found.id, name: found.name, slug: found.slug } : null;
+  };
 
   // Get min and max prices
   const priceBounds = useMemo(() => {
@@ -93,33 +137,161 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
     }
   }, [priceBounds]);
 
+  // Helper function to check if product matches search query (handles multiple words)
+  const matchesSearch = (product: Product, query: string): boolean => {
+    if (!query.trim()) return true;
+    
+    const searchTerms = query.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return true;
+    
+    const productText = [
+      product.designation_fr || '',
+      product.designation_ar || '',
+      product.brand?.designation_fr || '',
+      product.sous_categorie?.designation_fr || '',
+    ].join(' ').toLowerCase();
+    
+    // All search terms must be found in the product text
+    return searchTerms.every(term => productText.includes(term));
+  };
+
   // Handle search
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
         setIsSearching(true);
         try {
-          const result = await searchProducts(searchQuery);
-          setProducts(result.products || []);
+          // For better multi-word search, always use client-side filtering on all products
+          // This handles cases like "isolate whey" where words might be in different positions
+          const allProducts = productsData.products || [];
+          const foundProducts = allProducts.filter(product => matchesSearch(product, searchQuery));
+          setProducts(foundProducts);
+          
+          // Also try backend search as fallback for single word queries (faster)
+          if (searchQuery.trim().split(/\s+/).length === 1) {
+            try {
+              const result = await searchProducts(searchQuery);
+              if (result.products && result.products.length > 0) {
+                // Merge results, removing duplicates
+                const backendIds = new Set(foundProducts.map(p => p.id));
+                const newProducts = result.products.filter(p => !backendIds.has(p.id));
+                setProducts([...foundProducts, ...newProducts]);
+              }
+            } catch (backendError) {
+              // Ignore backend errors, use client-side results
+            }
+          }
         } catch (error) {
           console.error('Search error:', error);
+          setProducts([]);
         } finally {
           setIsSearching(false);
         }
       } else if (selectedCategories.length > 0) {
-        // Filter by category
+        // Filter by category/subcategory
         try {
-          const categorySlug = selectedCategories[0];
-          const result = await getProductsByCategory(categorySlug);
-          setProducts(result.products || []);
-          if (result.products.length === 0) {
-            console.warn(`No products found for category: ${categorySlug}`);
+          const categoryParam = selectedCategories[0];
+          
+          // Strategy: Try multiple approaches in order
+          // 1. Try as category slug FIRST (for category titles like "prise-de-masse")
+          // 2. Try as subcategory slug (for subcategory items like "gainers-haute-energie")
+          // 3. Convert name to slug and try subcategory
+          // 4. Find subcategory by name and use its slug
+          // 5. Fallback to client-side filtering
+          
+          let productsFound = false;
+          
+          // First: Try as category slug (e.g., "prise-de-masse", "perte-de-poids")
+          // This handles category titles from ProductsDropdown
+          try {
+            const result = await getProductsByCategory(categoryParam);
+            if (result.products && result.products.length > 0) {
+              setProducts(result.products);
+              productsFound = true;
+            } else if (result.products && result.products.length === 0) {
+              // API returned empty but valid response - category exists but has no products
+              setProducts([]);
+              productsFound = true;
+            }
+          } catch (catError: any) {
+            // Not a valid category slug, continue to next attempt
+            if (catError.response?.status !== 404) {
+              console.warn('Category API error:', catError);
+            }
+          }
+          
+          // Second: Try as subcategory slug directly (e.g., "gainers-haute-energie", "carbohydrates")
+          if (!productsFound) {
+            try {
+              const result = await getProductsBySubCategory(categoryParam);
+              if (result.products && result.products.length > 0) {
+                setProducts(result.products);
+                productsFound = true;
+              } else if (result.products && result.products.length === 0) {
+                // API returned empty but valid response - subcategory exists but has no products
+                setProducts([]);
+                productsFound = true;
+              }
+            } catch (subError: any) {
+              // Not a valid subcategory slug or API error, continue to next attempt
+              if (subError.response?.status !== 404) {
+                console.warn('Subcategory API error:', subError);
+              }
+            }
+          }
+          
+          // Third: Convert name to slug format and try subcategory (e.g., "Gainers Haute Énergie" -> "gainers-haute-energie")
+          if (!productsFound) {
+            const slugFromName = nameToSlug(categoryParam);
+            if (slugFromName && slugFromName !== categoryParam) {
+              try {
+                const result = await getProductsBySubCategory(slugFromName);
+                if (result.products && result.products.length > 0) {
+                  setProducts(result.products);
+                  productsFound = true;
+                }
+              } catch (slugError: any) {
+                // Slug conversion didn't work, continue
+              }
+            }
+          }
+          
+          // Fourth: Find subcategory by name and use its slug
+          if (!productsFound) {
+            const subCategory = findSubCategoryByName(categoryParam);
+            if (subCategory) {
+              try {
+                const result = await getProductsBySubCategory(subCategory.slug);
+                setProducts(result.products || []);
+                productsFound = true;
+              } catch (subError: any) {
+                // API failed, will try other methods
+                console.warn(`Subcategory found by name but API failed: ${subCategory.slug}`, subError);
+              }
+            }
+          }
+          
+          // Fifth: Final fallback - client-side filtering by subcategory name
+          if (!productsFound) {
+            const allProducts = productsData.products || [];
+            const filtered = allProducts.filter(p => 
+              p.sous_categorie && (
+                normalizeString(p.sous_categorie.designation_fr) === normalizeString(categoryParam) ||
+                p.sous_categorie.slug === categoryParam ||
+                p.sous_categorie.slug === nameToSlug(categoryParam)
+              )
+            );
+            setProducts(filtered);
+            if (filtered.length > 0) {
+              productsFound = true;
+            }
+          }
+          
+          if (!productsFound) {
+            console.warn(`No products found for category/subcategory: ${categoryParam}`);
           }
         } catch (error: any) {
-          // Only log non-404 errors
-          if (error.response?.status !== 404) {
-            console.error('Category filter error:', error);
-          }
+          console.error('Category filter error:', error);
           setProducts([]);
         }
       } else if (selectedBrands.length > 0) {

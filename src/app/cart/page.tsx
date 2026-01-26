@@ -10,10 +10,11 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Progress } from '@/app/components/ui/progress';
 import { Badge } from '@/app/components/ui/badge';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Sparkles, Shield, Truck, CheckCircle2, Gift, TrendingUp, Zap, X } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Sparkles, Shield, Truck, Gift, TrendingUp, Zap, X } from 'lucide-react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 import { motion, AnimatePresence } from 'motion/react';
 import { productsData } from '@/data/products';
+import { getStorageUrl } from '@/services/api';
 
 const FREE_SHIPPING_THRESHOLD = 300;
 
@@ -28,16 +29,12 @@ export default function CartPage() {
     addToCart,
   } = useCart();
 
-  const [couponCode, setCouponCode] = useState('');
-  const [couponApplied, setCouponApplied] = useState(false);
-  const [couponError, setCouponError] = useState(false);
   const [showUpsells, setShowUpsells] = useState(true);
 
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
   const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 10;
-  const couponDiscount = couponApplied ? totalPrice * 0.1 : 0; // 10% discount
-  const finalTotal = totalPrice + shippingCost - couponDiscount;
+  const finalTotal = totalPrice + shippingCost;
 
   // Calculate remaining amount for free shipping
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - totalPrice);
@@ -67,21 +64,6 @@ export default function CartPage() {
       .slice(0, 3);
   }, [items]);
 
-  const handleApplyCoupon = () => {
-    if (couponCode.toLowerCase() === 'welcome10' || couponCode.toLowerCase() === 'protein10') {
-      setCouponApplied(true);
-      setCouponError(false);
-    } else {
-      setCouponError(true);
-      setCouponApplied(false);
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setCouponCode('');
-    setCouponApplied(false);
-    setCouponError(false);
-  };
 
   if (totalItems === 0) {
     return (
@@ -175,8 +157,8 @@ export default function CartPage() {
               <div className="space-y-4">
                 <AnimatePresence>
                   {items.map((item) => {
-                    const price = item.product.price || 0;
-                    const priceText = item.product.priceText;
+                    const price = (item.product as any).price || (item.product as any).prix || 0;
+                    const priceText = (item.product as any).priceText;
                     const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
                     const displayPrice = newPriceMatch ? parseInt(newPriceMatch[1]) : price;
 
@@ -190,10 +172,10 @@ export default function CartPage() {
                       >
                         {/* Product Image */}
                         <div className="relative w-full sm:w-32 h-48 sm:h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                          {item.product.image ? (
+                          {(item.product as any).image || (item.product as any).cover ? (
                             <Image
-                              src={item.product.image}
-                              alt={item.product.name}
+                              src={(item.product as any).image || ((item.product as any).cover ? getStorageUrl((item.product as any).cover) : '')}
+                              alt={(item.product as any).name || (item.product as any).designation_fr || 'Product'}
                               fill
                               className="object-contain p-2"
                               sizes="(max-width: 640px) 100vw, 128px"
@@ -208,11 +190,11 @@ export default function CartPage() {
                         {/* Product Info */}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2">
-                            {item.product.name}
+                            {(item.product as any).name || (item.product as any).designation_fr}
                           </h3>
-                          {item.product.category && (
+                          {(item.product as any).category && (
                             <Badge variant="outline" className="mb-2">
-                              {item.product.category}
+                              {(item.product as any).category}
                             </Badge>
                           )}
                           <div className="flex items-center gap-4 mb-4">
@@ -402,57 +384,6 @@ export default function CartPage() {
                   </div>
                 )}
 
-                {/* Coupon Input */}
-                <div className="mb-6">
-                  {!couponApplied ? (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          placeholder="Code promo"
-                          value={couponCode}
-                          onChange={(e) => {
-                            setCouponCode(e.target.value);
-                            setCouponError(false);
-                          }}
-                          className="flex-1"
-                        />
-                        <Button
-                          onClick={handleApplyCoupon}
-                          className="bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white"
-                        >
-                          Appliquer
-                        </Button>
-                      </div>
-                      {couponError && (
-                        <p className="text-sm text-red-600 dark:text-red-400">
-                          Code invalide. Essayez "WELCOME10" ou "PROTEIN10"
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Codes disponibles: WELCOME10, PROTEIN10
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        <span className="text-sm font-semibold text-green-800 dark:text-green-200">
-                          Code appliqué: -{couponDiscount.toFixed(0)} DT
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRemoveCoupon}
-                        className="h-6 w-6 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
                 {/* Price Breakdown */}
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-gray-700 dark:text-gray-300">
@@ -465,12 +396,6 @@ export default function CartPage() {
                       {shippingCost === 0 ? 'Gratuite' : `${shippingCost} DT`}
                     </span>
                   </div>
-                  {couponApplied && (
-                    <div className="flex justify-between text-green-600 dark:text-green-400">
-                      <span>Remise</span>
-                      <span className="font-semibold">-{couponDiscount.toFixed(0)} DT</span>
-                    </div>
-                  )}
                   <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
                     <div className="flex justify-between text-2xl font-bold">
                       <span>Total</span>

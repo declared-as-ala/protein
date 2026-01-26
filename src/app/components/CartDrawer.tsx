@@ -14,6 +14,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
+import { getStorageUrl } from '@/services/api';
 
 interface CartDrawerProps {
   open: boolean;
@@ -59,8 +60,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           ) : (
             <div className="space-y-4 py-4">
               {items.map(item => {
-                const price = item.product.price || 0;
-                const priceText = item.product.priceText;
+                const price = (item.product as any).price || (item.product as any).prix || 0;
+                const priceText = (item.product as any).priceText;
                 const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
                 const displayPrice = newPriceMatch
                   ? parseInt(newPriceMatch[1])
@@ -73,10 +74,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   >
                     {/* Product Image */}
                     <div className="w-20 h-20 flex-shrink-0 bg-white dark:bg-gray-700 rounded-lg overflow-hidden relative">
-                      {item.product.image ? (
+                      {(item.product as any).image || (item.product as any).cover ? (
                         <Image
-                          src={item.product.image}
-                          alt={item.product.name}
+                          src={(item.product as any).image || ((item.product as any).cover ? getStorageUrl((item.product as any).cover) : '')}
+                          alt={(item.product as any).name || (item.product as any).designation_fr || 'Product'}
                           fill
                           className="object-contain p-2"
                           sizes="80px"
@@ -92,7 +93,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
-                        {item.product.name}
+                        {(item.product as any).name || (item.product as any).designation_fr}
                       </h3>
                       <p className="text-red-600 dark:text-red-400 font-bold mb-2">
                         {displayPrice} DT

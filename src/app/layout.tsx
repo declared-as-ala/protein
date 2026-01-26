@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/app/components/ThemeProvider";
 import { CartProvider } from "@/app/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -12,8 +14,80 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Protein Store",
-  description: "Premium protein supplements and nutrition products",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://sobitas.tn'),
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
+  title: {
+    default: "Sobitas - Protéine Tunisie | Boutique de Compléments Alimentaires",
+    template: "%s | Sobitas"
+  },
+  description: "Découvrez notre boutique de protéines en Tunisie ! Nous proposons une large gamme de produits protéines à des prix compétitifs. Whey, créatine, gainer, BCAA et plus.",
+  keywords: [
+    "proteine tunisie",
+    "protein tunisie",
+    "whey protein",
+    "whey proteine tunisie",
+    "protéine whey tunisie",
+    "créatine monohydrate tunisie",
+    "gainer tunisie",
+    "mass gainer tunisie",
+    "BCAA tunisie",
+    "oméga 3 tunisie",
+    "meilleure whey tunisie",
+    "prix protéine tunisie",
+    "prix whey tunisie",
+    "acheter protéine tunisie",
+    "achat protéine tunisie",
+    "où acheter protéine en tunisie",
+    "créatine monohydrate effet secondaire",
+    "comment prendre créatine",
+    "proteine pas cher tunisie",
+    "proteine en ligne tunisie",
+    "proteine musculation tunisie",
+    "proteine isolate tunisie",
+    "proteine vegan tunisie"
+  ],
+  authors: [{ name: "SOBITAS" }],
+  creator: "SOBITAS",
+  publisher: "SOBITAS",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "https://sobitas.tn",
+    siteName: "Sobitas",
+    title: "Sobitas - Protéine Tunisie",
+    description: "Découvrez notre boutique de protéines en Tunisie : whey, créatine, gainer, BCAA et plus !",
+    images: [
+      {
+        url: "https://sobitas.tn/assets/img/logo/logo.webp",
+        width: 1200,
+        height: 630,
+        alt: "Sobitas - Protéine Tunisie",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sobitas - Protéine Tunisie",
+    description: "Découvrez notre boutique de protéines en Tunisie : whey, créatine, gainer, BCAA et plus !",
+    images: ["https://sobitas.tn/assets/img/logo/logo.webp"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console verification if available
+  },
 };
 
 export default function RootLayout({
@@ -22,12 +96,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+              <Toaster position="top-right" richColors />
+            </CartProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

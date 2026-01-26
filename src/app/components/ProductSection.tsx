@@ -3,9 +3,12 @@
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import { ProductCard } from './ProductCard';
-import { Product } from '@/data/products';
+import { Product as DataProduct } from '@/data/products';
+import type { Product as ApiProduct } from '@/types';
 import { Button } from '@/app/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+
+type Product = ApiProduct | DataProduct;
 
 interface ProductSectionProps {
   title: string;
@@ -59,8 +62,8 @@ export function ProductSection({
           >
             <Button variant="outline" className="group" asChild>
               <Link href="/shop">
-                Voir tout
-                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              Voir tout
+              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
           </motion.div>

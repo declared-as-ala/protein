@@ -32,13 +32,6 @@ export function AnnouncementBar() {
             </motion.div>
             <span className="font-bold">🎉 PROMOTION EXCEPTIONNELLE</span>
             <span className="hidden sm:inline font-medium">• Livraison GRATUITE dès 300 DT</span>
-            <span className="hidden md:inline font-medium">• -20% avec le code:</span>
-            <motion.code
-              whileHover={{ scale: 1.05 }}
-              className="hidden md:inline bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg font-mono font-bold border border-white/30"
-            >
-              WELCOME20
-            </motion.code>
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}

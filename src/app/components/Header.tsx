@@ -6,27 +6,32 @@ import Image from 'next/image';
 import { ShoppingCart, User, Menu, X, Moon, Sun, Phone } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { useTheme } from 'next-themes';
-import { AnnouncementBar } from './AnnouncementBar';
 import { PremiumTopBar } from './PremiumTopBar';
 import { ProductsDropdown } from './ProductsDropdown';
 import { CartDrawer } from './CartDrawer';
 import { useCart } from '@/app/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'motion/react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { getTotalItems } = useCart();
+  const { isAuthenticated, user, logout } = useAuth();
   const cartItemsCount = getTotalItems();
 
   return (
     <>
       {/* Premium Top Bar */}
       <PremiumTopBar />
-      
-      {/* Announcement Bar */}
-      <AnnouncementBar />
       
       {/* Top Bar */}
       <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
@@ -46,61 +51,75 @@ export function Header() {
       {/* Main Header */}
       <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          {/* Top Row: Logo + Actions */}
+          <div className="flex items-center justify-between h-16 lg:h-20 py-3 lg:py-4">
             {/* Logo */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400 }}
-              className="flex items-center"
+              className="flex items-center flex-shrink-0"
             >
-              <Link href="/" className="flex-shrink-0 relative h-12 w-auto mr-8 flex items-center">
+              <Link href="/" className="relative h-10 lg:h-12 w-auto flex items-center">
                 <Image
                   src="https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp"
                   alt="Protein.tn"
                   width={150}
                   height={48}
-                  className="h-12 w-auto drop-shadow-lg"
+                  className="h-10 lg:h-12 w-auto drop-shadow-lg"
+                  style={{ width: 'auto', height: 'auto' }}
                   priority
                 />
               </Link>
             </motion.div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8 flex-1 overflow-visible ml-8">
-              <Link href="/" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                ACCUEIL
-              </Link>
-              <ProductsDropdown />
-              <Link href="/packs" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                PACKS
-              </Link>
-              <Link href="/blog" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                BLOG
-              </Link>
-              <Link href="/contact" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                CONTACT
-              </Link>
-              <Link href="/about" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                QUI SOMMES NOUS
-              </Link>
-              <Link href="/calculators" className="text-sm font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap">
-                CALCULATEURS
-              </Link>
-            </nav>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
-                <User className="h-5 w-5" />
-              </Button>
+            {/* Right Actions: Profile, Theme, Cart, Mobile Menu */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 relative z-50">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="z-[100] min-w-[200px] shadow-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                    sideOffset={8}
+                  >
+                    <div className="px-3 py-2.5 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    </div>
+                    <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
+                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20">
+                      <Link href="/account" className="flex items-center w-full">
+                        Mon Compte
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={logout}
+                      className="cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
+                    >
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="ghost" size="sm" className="hidden sm:flex h-10 px-4" asChild>
+                  <Link href="/login">Connexion</Link>
+                </Button>
+              )}
+              
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="hidden md:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+                className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10"
+                aria-label="Toggle theme"
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
+              
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
@@ -108,7 +127,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10"
                   asChild
                 >
                   <Link href="/cart">
@@ -130,46 +149,141 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="lg:hidden hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
             </div>
           </div>
+
+          {/* Bottom Row: Desktop Navigation */}
+          <nav className="hidden lg:flex items-center justify-center space-x-6 xl:space-x-8 pb-4 border-t border-gray-200/50 dark:border-gray-800/50 pt-4">
+            <Link href="/" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              ACCUEIL
+            </Link>
+            <ProductsDropdown />
+            <Link href="/packs" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              PACKS
+            </Link>
+            <Link href="/brands" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              MARQUES
+            </Link>
+            <Link href="/blog" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              BLOG
+            </Link>
+            <Link href="/contact" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              CONTACT
+            </Link>
+            <Link href="/about" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              QUI SOMMES NOUS
+            </Link>
+            <Link href="/calculators" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+              CALCULATEURS
+            </Link>
+          </nav>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <nav className="px-4 py-6 space-y-4">
-              <Link href="/" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden"
+          >
+            <nav className="px-4 py-6 space-y-3">
+              <Link 
+                href="/" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 ACCUEIL
               </Link>
-              <Link href="/shop" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/shop" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 NOS PRODUITS
               </Link>
-              <Link href="/packs" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/packs" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 PACKS
               </Link>
-              <Link href="/blog" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/brands" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                MARQUES
+              </Link>
+              <Link 
+                href="/blog" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 BLOG
               </Link>
-              <Link href="/contact" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/contact" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 CONTACT
               </Link>
-              <Link href="/about" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/about" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 QUI SOMMES NOUS
               </Link>
-              <Link href="/calculators" className="block text-base font-medium text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              <Link 
+                href="/calculators" 
+                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 CALCULATEURS
               </Link>
-              <Button variant="outline" className="w-full justify-start" size="lg">
-                <User className="h-5 w-5 mr-2" />
-                Mon Compte
-              </Button>
+              
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/account" className="block" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start" size="lg">
+                        <User className="h-5 w-5 mr-2" />
+                        Mon Compte
+                      </Button>
+                    </Link>
+                    <Button variant="outline" className="w-full justify-start" size="lg" onClick={() => { logout(); setMobileMenuOpen(false); }}>
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <Link href="/login" className="block" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start" size="lg">
+                      <User className="h-5 w-5 mr-2" />
+                      Connexion
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  size="lg"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {theme === 'dark' ? <Sun className="h-5 w-5 mr-2" /> : <Moon className="h-5 w-5 mr-2" />}
+                  {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                </Button>
+              </div>
             </nav>
-          </div>
+          </motion.div>
         )}
       </header>
 

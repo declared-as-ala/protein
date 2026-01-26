@@ -1,12 +1,41 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
-import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Sparkles, Award, Shield, Truck, Gift, Loader2, MessageCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { motion } from 'motion/react';
+import { subscribeNewsletter } from '@/services/api';
+import { toast } from 'sonner';
 
 export function Footer() {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) {
+      toast.error('Veuillez entrer votre email');
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const result = await subscribeNewsletter({ email: newsletterEmail });
+      if ('success' in result) {
+        toast.success(result.success || 'Inscription réussie !');
+        setNewsletterEmail('');
+      } else if ('error' in result) {
+        toast.error(result.error || 'Erreur lors de l\'inscription');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erreur lors de l\'inscription');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   return (
     <footer id="contact" className="bg-gradient-to-b from-gray-900 via-gray-950 to-black text-gray-300 border-t border-gray-800">
       {/* Premium Trust Section */}
@@ -52,7 +81,8 @@ export function Footer() {
                 width={150}
                 height={48}
                 className="h-12 w-auto"
-                loading="lazy"
+                style={{ width: 'auto', height: 'auto' }}
+                priority
               />
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
@@ -78,34 +108,53 @@ export function Footer() {
             {/* Social Media */}
             <div>
               <h3 className="font-semibold text-white mb-4">Suivez-nous</h3>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <a
-                  href="#"
-                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-red-600 flex items-center justify-center transition-colors"
+                  href="https://www.facebook.com/sobitass/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-[#1877F2] flex items-center justify-center transition-colors"
                   aria-label="Facebook"
                 >
                   <Facebook className="h-5 w-5" />
                 </a>
                 <a
-                  href="#"
-                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-red-600 flex items-center justify-center transition-colors"
+                  href="https://www.instagram.com/sobitass/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 flex items-center justify-center transition-colors"
                   aria-label="Instagram"
                 >
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a
-                  href="#"
-                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-red-600 flex items-center justify-center transition-colors"
-                  aria-label="Youtube"
-                >
-                  <Youtube className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-red-600 flex items-center justify-center transition-colors"
+                  href="https://twitter.com/TunisieProteine"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-[#1DA1F2] flex items-center justify-center transition-colors"
                   aria-label="Twitter"
                 >
                   <Twitter className="h-5 w-5" />
+                </a>
+                <a
+                  href="https://wa.me/21627612500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-[#25D366] flex items-center justify-center transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </a>
+                <a
+                  href="https://www.tiktok.com/@sobitassousse?_t=8fxdJ9IKeur&_r=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-10 w-10 rounded-full bg-gray-800 hover:bg-black flex items-center justify-center transition-colors group"
+                  aria-label="TikTok"
+                >
+                  <svg className="h-5 w-5 text-white group-hover:text-[#FF0050]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
                 </a>
               </div>
             </div>
@@ -186,51 +235,74 @@ export function Footer() {
               <p className="text-sm text-gray-400 mb-4">
                 Recevez les dernières offres exclusives et nouveautés
               </p>
-              <div className="space-y-3">
+              <form onSubmit={handleNewsletterSubmit} className="space-y-3">
                 <Input
                   type="email"
                   placeholder="Votre email..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 h-12 rounded-xl"
+                  required
                 />
-                <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-12 font-bold rounded-xl shadow-lg">
-                  S'abonner
+                <Button 
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-12 font-bold rounded-xl shadow-lg"
+                  disabled={isSubscribing}
+                >
+                  {isSubscribing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Inscription...
+                    </>
+                  ) : (
+                    'S\'abonner'
+                  )}
                 </Button>
-                <p className="text-xs text-gray-500">
-                  En vous abonnant, vous acceptez de recevoir nos offres par email
-                </p>
-              </div>
+              </form>
+              <p className="text-xs text-gray-500">
+                En vous abonnant, vous acceptez de recevoir nos offres par email
+              </p>
             </div>
 
             {/* App Download */}
             <div>
               <h3 className="font-semibold text-white mb-4">Télécharger notre application</h3>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Google Play Badge */}
                 <a
                   href="#"
-                  className="block bg-gray-800 hover:bg-gray-700 rounded-lg p-3 transition-colors"
+                  className="block w-full hover:scale-[1.02] transition-all duration-200 rounded-lg overflow-hidden"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-white flex items-center justify-center">
-                      <span className="text-xl">📱</span>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Disponible sur</div>
-                      <div className="text-sm font-semibold text-white">Google Play</div>
-                    </div>
+                  <div className="relative w-full aspect-[3/1]">
+                    <Image
+                      src="/googleplay.png"
+                      alt="Google Play"
+                      fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="object-cover rounded-lg"
+                      priority
+                    />
                   </div>
                 </a>
+
+                {/* App Store Badge */}
                 <a
                   href="#"
-                  className="block bg-gray-800 hover:bg-gray-700 rounded-lg p-3 transition-colors"
+                  className="block w-full hover:scale-[1.02] transition-all duration-200 rounded-lg overflow-hidden"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-white flex items-center justify-center">
-                      <span className="text-xl">🍎</span>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Télécharger sur</div>
-                      <div className="text-sm font-semibold text-white">App Store</div>
-                    </div>
+                  <div className="relative w-full aspect-[3/1]">
+                    <Image
+                      src="/app-store.png"
+                      alt="App Store"
+                      fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="object-cover rounded-lg"
+                      priority
+                    />
                   </div>
                 </a>
               </div>

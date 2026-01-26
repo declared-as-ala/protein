@@ -88,13 +88,13 @@ export function TestimonialsSection() {
               <div className="flex items-center gap-4">
                 <div className="relative w-14 h-14 rounded-full ring-2 ring-red-600 overflow-hidden">
                   <Image
-                    src={testimonial.image}
-                    alt={testimonial.name}
+                  src={testimonial.image}
+                  alt={testimonial.name}
                     fill
                     className="object-cover"
                     sizes="56px"
                     loading="lazy"
-                  />
+                />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white">

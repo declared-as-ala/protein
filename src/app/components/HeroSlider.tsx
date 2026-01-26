@@ -6,54 +6,75 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
+import { getStorageUrl } from '@/services/api';
 
-const slides = [
+const defaultSlides = [
   {
     id: 1,
-    title: "Protéines & Whey Premium",
+    titre: "Protéines & Whey Premium",
     description: "Des protéines de qualité supérieure pour maximiser vos gains musculaires",
-    cta: "Découvrir",
+    lien: "/shop",
     image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1920&h=800&fit=crop&q=80"
   },
   {
     id: 2,
-    title: "Prise de Masse & Performance",
+    titre: "Prise de Masse & Performance",
     description: "Gagnez en masse musculaire avec nos gainers haute énergie",
-    cta: "Voir les Produits",
+    lien: "/shop",
     image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&h=800&fit=crop&q=80"
   },
   {
     id: 3,
-    title: "Accessoires & Équipements",
+    titre: "Accessoires & Équipements",
     description: "Tout l'équipement nécessaire pour votre entraînement",
-    cta: "Explorer",
+    lien: "/shop",
     image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&h=800&fit=crop&q=80"
   }
 ];
 
-export function HeroSlider() {
+interface HeroSliderProps {
+  slides?: any[];
+}
+
+export function HeroSlider({ slides = defaultSlides }: HeroSliderProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isClient, setIsClient] = useState(false);
+
+  // Modify slides to use photo.jpg as the first image
+  const modifiedSlides = useMemo(() => {
+    if (!slides || slides.length === 0) return defaultSlides;
+    
+    const slidesCopy = [...slides];
+    // Always use /photo.jpg for the first slide
+    if (slidesCopy[0]) {
+      slidesCopy[0] = {
+        ...slidesCopy[0],
+        image: '/photo.avif',
+        cover: null, // Clear cover to use image instead
+      };
+    }
+    return slidesCopy;
+  }, [slides]);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || modifiedSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % modifiedSlides.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [isClient]);
+  }, [isClient, modifiedSlides]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % modifiedSlides.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + modifiedSlides.length) % modifiedSlides.length);
   };
 
   return (
@@ -69,13 +90,20 @@ export function HeroSlider() {
         >
           {/* Background Image */}
           <Image
-            src={slides[currentSlide].image}
-            alt={slides[currentSlide].title}
+            src={modifiedSlides[currentSlide]?.image || (modifiedSlides[currentSlide]?.cover ? getStorageUrl(modifiedSlides[currentSlide].cover) : defaultSlides[0].image)}
+            alt={modifiedSlides[currentSlide]?.titre || modifiedSlides[currentSlide]?.title || 'Slide'}
             fill
             priority={currentSlide === 0}
-            className="object-cover"
+            className={modifiedSlides[currentSlide]?.image === '/photo.avif' ? 'object-cover scale-[0.85]' : 'object-cover'}
             sizes="100vw"
             quality={85}
+            onError={(e) => {
+              // Fallback to default image if current slide image fails
+              const target = e.target as HTMLImageElement;
+              if (target.src !== defaultSlides[0].image) {
+                target.src = defaultSlides[0].image;
+              }
+            }}
           />
           
           {/* Overlay */}
@@ -95,7 +123,7 @@ export function HeroSlider() {
                 transition={{ delay: 0.5, duration: 0.6 }}
                 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
               >
-                {slides[currentSlide].title}
+                {modifiedSlides[currentSlide]?.titre || modifiedSlides[currentSlide]?.title || 'Protéines & Whey Premium'}
               </motion.h1>
               <motion.p
                 initial={{ y: 20, opacity: 0 }}
@@ -103,7 +131,7 @@ export function HeroSlider() {
                 transition={{ delay: 0.7, duration: 0.6 }}
                 className="text-lg md:text-xl text-gray-200 mb-8 max-w-xl"
               >
-                {slides[currentSlide].description}
+                {modifiedSlides[currentSlide]?.description || 'Des protéines de qualité supérieure pour maximiser vos gains musculaires'}
               </motion.p>
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -116,7 +144,9 @@ export function HeroSlider() {
                   className="bg-red-600 hover:bg-red-700 text-white px-8 h-12 text-base"
                   asChild
                 >
-                  <Link href="/shop">{slides[currentSlide].cta}</Link>
+                  <Link href={modifiedSlides[currentSlide]?.lien || modifiedSlides[currentSlide]?.link || '/shop'}>
+                    {modifiedSlides[currentSlide]?.cta || 'Découvrir'}
+                  </Link>
                 </Button>
                 <Button 
                   size="lg" 
@@ -150,7 +180,7 @@ export function HeroSlider() {
 
       {/* Indicators */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
-        {slides.map((_, index) => (
+        {modifiedSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}

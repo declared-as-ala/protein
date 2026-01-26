@@ -10,8 +10,8 @@ import { Button } from '@/app/components/ui/button';
 const heroSlides = [
   {
     id: 1,
-    titre: "Protéines Premium & Café",
-    description: "Commencez votre journée avec l'énergie parfaite : protéines premium de qualité et café pour booster vos performances",
+    titre: "Protéines Premium",
+    description: "Commencez votre journée avec l'énergie parfaite : protéines premium de qualité pour booster vos performances et atteindre vos objectifs",
     lien: "/shop",
     image: "/hero/protein_and_coffee_1db3f8a9-b5d6-4e73-920e-eab0012ecb83.webp",
   },

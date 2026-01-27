@@ -26,6 +26,7 @@ export default function CartPage() {
     clearCart,
     getTotalPrice,
     getTotalItems,
+    getEffectivePrice,
     addToCart,
   } = useCart();
 
@@ -157,10 +158,7 @@ export default function CartPage() {
               <div className="space-y-4">
                 <AnimatePresence>
                   {items.map((item) => {
-                    const price = (item.product as any).price || (item.product as any).prix || 0;
-                    const priceText = (item.product as any).priceText;
-                    const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
-                    const displayPrice = newPriceMatch ? parseInt(newPriceMatch[1]) : price;
+                    const displayPrice = getEffectivePrice(item.product);
 
                     return (
                       <motion.div
@@ -205,6 +203,11 @@ export default function CartPage() {
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {displayPrice} DT / unité
                               </p>
+                              {(item.product as any).prix != null && (item.product as any).prix > displayPrice && (
+                                <p className="text-xs text-gray-400 line-through">
+                                  {(item.product as any).prix} DT
+                                </p>
+                              )}
                             </div>
                           </div>
 

@@ -287,7 +287,7 @@ export default function CheckoutPage() {
         panier: items.map(item => ({
           produit_id: item.product.id,
           quantite: item.quantity,
-          prix_unitaire: (item.product as any).prix || (item.product as any).price || 0,
+          prix_unitaire: getEffectivePrice(item.product),
         })),
       };
 
@@ -341,20 +341,23 @@ export default function CheckoutPage() {
             user_id: user?.id,
             created_at: new Date().toISOString(),
           } as Order,
-          orderDetails: items.map(item => ({
+          orderDetails: items.map(item => {
+            const unitPrice = getEffectivePrice(item.product);
+            return {
             id: 0,
             produit_id: item.product.id,
             qte: item.quantity,
-            prix_unitaire: (item.product as any).prix || (item.product as any).price || 0,
-            prix_ht: ((item.product as any).prix || (item.product as any).price || 0) * item.quantity,
-            prix_ttc: ((item.product as any).prix || (item.product as any).price || 0) * item.quantity,
+            prix_unitaire: unitPrice,
+            prix_ht: unitPrice * item.quantity,
+            prix_ttc: unitPrice * item.quantity,
             produit: {
               id: item.product.id,
               designation_fr: (item.product as any).designation_fr || (item.product as any).name || 'Produit',
               cover: (item.product as any).cover,
               slug: (item.product as any).slug,
             }
-          }))
+          };
+          })
         });
       }
       
@@ -1264,7 +1267,7 @@ export default function CheckoutPage() {
                   {/* Items */}
                   <div className="space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
                     {items.map((item) => {
-                      const price = (item.product as any).prix || (item.product as any).price || 0;
+                      const price = getEffectivePrice(item.product);
                       const productName = (item.product as any).designation_fr || (item.product as any).name;
                       const productImage = (item.product as any).cover 
                         ? getStorageUrl((item.product as any).cover) 

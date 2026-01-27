@@ -13,6 +13,16 @@ export interface CartItem {
   quantity: number;
 }
 
+/** Effective unit price: promo if valid (promo + future expiration), else prix/price */
+function getEffectivePrice(product: Product): number {
+  const p = product as { promo?: number; promo_expiration_date?: string; prix?: number; price?: number };
+  if (p.promo != null && p.promo !== undefined && p.promo_expiration_date) {
+    const exp = new Date(p.promo_expiration_date);
+    if (!isNaN(exp.getTime()) && exp.getTime() > Date.now()) return p.promo;
+  }
+  return (p as any).price ?? (p as any).prix ?? 0;
+}
+
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -21,6 +31,7 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  getEffectivePrice: (product: Product) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -104,11 +115,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getTotalPrice = () => {
-    return items.reduce((total, item) => {
-      // Support both Product types
-      const price = (item.product as any).price || (item.product as any).prix || 0;
-      return total + price * item.quantity;
-    }, 0);
+    return items.reduce((total, item) => total + getEffectivePrice(item.product) * item.quantity, 0);
   };
 
   return (
@@ -121,6 +128,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         getTotalItems,
         getTotalPrice,
+        getEffectivePrice,
       }}
     >
       {children}

@@ -28,6 +28,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     updateQuantity,
     clearCart,
     getTotalPrice,
+    getEffectivePrice,
   } = useCart();
 
   const totalPrice = getTotalPrice();
@@ -60,12 +61,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           ) : (
             <div className="space-y-4 py-4">
               {items.map(item => {
-                const price = (item.product as any).price || (item.product as any).prix || 0;
-                const priceText = (item.product as any).priceText;
-                const newPriceMatch = priceText?.match(/(\d+)\s*DT$/);
-                const displayPrice = newPriceMatch
-                  ? parseInt(newPriceMatch[1])
-                  : price;
+                const displayPrice = getEffectivePrice(item.product);
 
                 return (
                   <div

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header } from '@/app/components/Header';
@@ -12,11 +12,13 @@ import { ProductCard } from '@/app/components/ProductCard';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import { Minus, Plus, ShoppingCart, Star, Shield, Truck, Award, ArrowLeft, Heart, Share2, ZoomIn, CheckCircle2 } from 'lucide-react';
+import { Input } from '@/app/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { Minus, Plus, ShoppingCart, Star, Shield, Truck, Award, ArrowLeft, Heart, Share2, ZoomIn, CheckCircle2, Loader2, BadgeCheck, ThumbsUp, Flag, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/app/components/ui/card';
-import type { Product } from '@/types';
-import { getStorageUrl, addReview } from '@/services/api';
+import type { Product, Review } from '@/types';
+import { getStorageUrl, addReview, getProductDetails } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -25,25 +27,57 @@ interface ProductDetailClientProps {
   similarProducts: Product[];
 }
 
-export function ProductDetailClient({ product, similarProducts }: ProductDetailClientProps) {
+export function ProductDetailClient({ product: initialProduct, similarProducts }: ProductDetailClientProps) {
   const router = useRouter();
+  const params = useParams();
+  const productSlug = params?.id as string;
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSort, setReviewSort] = useState<'recent' | 'helpful'>('recent');
+  const [reviewSearch, setReviewSearch] = useState('');
+  
+  // Use state to manage product data so we can update it after adding a review
+  const [product, setProduct] = useState<Product>(initialProduct);
+  // Backend already filters reviews by publier = 1 in the relationship, so use all reviews returned
+  // The publier field is hidden in JSON response, so we can't filter on frontend
+  const [reviews, setReviews] = useState<Review[]>(initialProduct.reviews || []);
+
+  // Update product and reviews when initialProduct changes
+  useEffect(() => {
+    setProduct(initialProduct);
+    // Backend's reviews() relationship already filters by publier = 1, so all returned reviews are published
+    const productReviews = initialProduct.reviews || [];
+    setReviews(productReviews);
+  }, [initialProduct]);
 
   const basePrice = product.prix || 0;
   const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
   const displayPrice = promoPrice || basePrice;
   const oldPrice = promoPrice ? basePrice : null;
   const discount = promoPrice ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
-  const rating = product.note || 0;
-  const reviews = product.reviews?.filter(r => r.publier === 1) || [];
+  const rating = product.note || (reviews.length > 0 
+    ? reviews.reduce((s, r) => s + r.stars, 0) / reviews.length 
+    : 0);
   const reviewCount = reviews.length;
+
+  // Filter and sort reviews for display
+  const filteredReviews = [...reviews]
+    .filter(r => !reviewSearch || (r.comment?.toLowerCase().includes(reviewSearch.toLowerCase())))
+    .sort((a, b) => {
+      if (reviewSort === 'recent') {
+        const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return db - da;
+      }
+      return 0;
+    });
 
   const images = product.cover ? [product.cover] : [];
   const productImage = images[0] ? getStorageUrl(images[0]) : '';
@@ -82,20 +116,101 @@ export function ProductDetailClient({ product, similarProducts }: ProductDetailC
       return;
     }
 
+    setIsSubmittingReview(true);
+
     try {
-      await addReview({
+      // Submit review to backend
+      const newReview = await addReview({
         product_id: product.id,
         stars: reviewStars,
         comment: reviewComment,
       });
-      toast.success('Avis ajouté avec succès');
+
+      // Backend logic: reviews with stars >= 4 are automatically published (publier = 1)
+      // Reviews with stars < 4 are not published (publier = 0) and need moderation
+      const isPublished = reviewStars >= 4;
+
+      // Reset form immediately for better UX
       setReviewStars(0);
       setReviewComment('');
       setShowReviewForm(false);
-      // Refresh page to show new review
-      router.refresh();
+
+      if (isPublished) {
+        // Optimistically add the review to UI immediately (will be replaced by server data)
+        if (user) {
+          const optimisticReview: Review = {
+            id: Date.now(), // Temporary ID
+            stars: reviewStars,
+            comment: reviewComment || undefined,
+            publier: 1,
+            created_at: new Date().toISOString(),
+            user: {
+              id: user.id,
+              name: user.name || 'Vous',
+              avatar: user.avatar,
+            },
+          };
+          setReviews(prev => [...prev, optimisticReview]);
+        }
+
+        // For published reviews, refetch product data to get the complete review with user info
+        // Add a small delay to ensure backend transaction is committed
+        setTimeout(async () => {
+          try {
+            // Use the slug from URL params for reliable refetching
+            const slugToUse = productSlug || product.slug || product.id.toString();
+            
+            // Refetch with cache busting to ensure fresh data
+            const updatedProduct = await getProductDetails(slugToUse, true);
+            
+            // Update product state with fresh data from backend
+            setProduct(updatedProduct);
+            
+            // Backend's reviews() relationship already filters by publier = 1
+            const publishedReviews = updatedProduct.reviews || [];
+            setReviews(publishedReviews);
+            
+            const newReviewCount = publishedReviews.length;
+            const oldReviewCount = reviews.length;
+            
+            if (newReviewCount > oldReviewCount) {
+              toast.success(`Avis publié avec succès ! (${newReviewCount} avis)`);
+            } else if (newReviewCount === oldReviewCount && newReviewCount > 0) {
+              // Review count stayed same but we have reviews - might be a timing issue
+              toast.success('Avis ajouté avec succès !');
+              // Force a full page refresh to ensure consistency
+              setTimeout(() => {
+                router.refresh();
+              }, 1000);
+            } else {
+              toast.success('Avis ajouté avec succès !');
+              // If count didn't increase, force a full page refresh
+              router.refresh();
+            }
+          } catch (fetchError: any) {
+            console.error('Error refetching product:', fetchError);
+            // If refetch fails, use router.refresh() as fallback to reload server component
+            toast.success('Avis ajouté avec succès !');
+            setTimeout(() => {
+              router.refresh();
+            }, 1000);
+          }
+        }, 1000); // Wait 1 second for backend to commit transaction and propagate
+      } else {
+        // Review not published (stars < 4) - will be moderated
+        toast.success('Avis ajouté avec succès ! Il sera publié après modération.');
+        // Still refresh to ensure UI is in sync
+        setTimeout(() => {
+          router.refresh();
+        }, 500);
+      }
+
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'ajout de l\'avis');
+      console.error('Error adding review:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors de l\'ajout de l\'avis';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -120,7 +235,10 @@ export function ProductDetailClient({ product, similarProducts }: ProductDetailC
           </Button>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 mb-16">
+          {/* LEFT: Product (images + info + description tabs) */}
+          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Images */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -329,20 +447,14 @@ export function ProductDetailClient({ product, similarProducts }: ProductDetailC
           </motion.div>
         </div>
 
-        {/* Product Details Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-16"
-        >
-          <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-100 dark:bg-gray-900 rounded-xl p-1">
-              <TabsTrigger value="description" className="rounded-lg">Description</TabsTrigger>
-              <TabsTrigger value="nutrition" className="rounded-lg">Valeurs Nutritionnelles</TabsTrigger>
-              <TabsTrigger value="usage" className="rounded-lg">Mode d'emploi</TabsTrigger>
-              <TabsTrigger value="reviews" className="rounded-lg">Avis ({reviewCount})</TabsTrigger>
-            </TabsList>
+            {/* Product Details Tabs (no Avis – avis à droite) */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="w-full">
+              <Tabs defaultValue="description" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 dark:bg-gray-900 rounded-xl p-1">
+                  <TabsTrigger value="description" className="rounded-lg">Description</TabsTrigger>
+                  <TabsTrigger value="nutrition" className="rounded-lg">Valeurs Nutritionnelles</TabsTrigger>
+                  <TabsTrigger value="usage" className="rounded-lg">Mode d'emploi</TabsTrigger>
+                </TabsList>
             
             <TabsContent value="description" className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-800">
               <h3 className="text-2xl font-bold mb-4">Description du produit</h3>
@@ -365,99 +477,159 @@ export function ProductDetailClient({ product, similarProducts }: ProductDetailC
                 Consultez les instructions sur l'emballage du produit pour le mode d'emploi recommandé.
               </p>
             </TabsContent>
+              </Tabs>
+            </motion.div>
+          </div>
 
-            <TabsContent value="reviews" className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold">Avis clients ({reviewCount})</h3>
-                {isAuthenticated && (
-                  <Button onClick={() => setShowReviewForm(!showReviewForm)}>
-                    Laisser un avis
-                  </Button>
-                )}
-              </div>
+          {/* RIGHT: Avis (toujours visible, pas besoin de cliquer) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 }}
+            className="lg:col-span-1"
+          >
+            <div className="sticky top-4 space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 pb-2">Avis clients</h3>
 
+              {/* Review Form quand ouvert */}
               {showReviewForm && isAuthenticated && (
-                <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <h4 className="font-semibold mb-4">Votre avis</h4>
-                  <div className="space-y-4">
+                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-orange-200 dark:border-orange-900/50">
+                  <h4 className="font-bold mb-3 text-gray-900 dark:text-white">Votre avis</h4>
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Note</label>
-                      <div className="flex gap-2">
+                      <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Note *</label>
+                      <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => setReviewStars(star)}
-                            className="focus:outline-none"
-                          >
-                            <Star
-                              className={`h-6 w-6 ${
-                                star <= reviewStars
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'fill-gray-200 text-gray-200'
-                              }`}
-                            />
+                          <button key={star} onClick={() => setReviewStars(star)} className="focus:outline-none" aria-label={`Noter ${star} étoile${star > 1 ? 's' : ''}`}>
+                            <Star className={`h-7 w-7 ${star <= reviewStars ? 'fill-orange-500 text-orange-500' : 'fill-gray-300 text-gray-300 dark:fill-gray-600'}`} />
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Commentaire</label>
-                      <textarea
-                        value={reviewComment}
-                        onChange={(e) => setReviewComment(e.target.value)}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg"
-                        rows={4}
-                        placeholder="Partagez votre expérience..."
-                      />
+                      <label className="block text-sm font-semibold mb-1 text-gray-900 dark:text-white">Commentaire (optionnel)</label>
+                      <textarea value={reviewComment} onChange={(e) => { if (e.target.value.length <= 500) setReviewComment(e.target.value); }} className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm" rows={4} placeholder="Partagez votre expérience..." maxLength={500} />
+                      <p className="text-xs mt-0.5 text-gray-500">{reviewComment.length}/500</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleSubmitReview}>Envoyer</Button>
-                      <Button variant="outline" onClick={() => setShowReviewForm(false)}>
-                        Annuler
+                      <Button onClick={handleSubmitReview} disabled={reviewStars === 0 || isSubmittingReview} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white" size="sm">
+                        {isSubmittingReview ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Publication...</> : 'Publier'}
                       </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setShowReviewForm(false); setReviewStars(0); setReviewComment(''); }}>Annuler</Button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {reviews.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400">Aucun avis pour le moment.</p>
-              ) : (
-                <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="border-b border-gray-200 dark:border-gray-800 pb-6 last:border-0">
-                      <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                          {review.user?.name?.[0] || 'A'}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold">{review.user?.name || 'Anonyme'}</span>
-                            <div className="flex gap-1">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.stars
-                                      ? 'fill-yellow-400 text-yellow-400'
-                                      : 'fill-gray-200 text-gray-200'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          {review.comment && (
-                            <p className="text-gray-600 dark:text-gray-400">{review.comment}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{rating > 0 ? rating.toFixed(1) : '–'}</span>
+                  <span className="text-gray-500 dark:text-gray-400">/ 5</span>
+                </div>
+                <div className="flex items-center gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className={`h-4 w-4 ${i <= Math.round(rating) ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
                   ))}
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </motion.div>
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm">
+                  <BadgeCheck className="h-4 w-4 shrink-0" />
+                  <span>Avis Vérifiés</span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Basé sur {reviewCount} avis soumis à un contrôle
+                </p>
+                {isAuthenticated && (
+                  <Button onClick={() => setShowReviewForm(!showReviewForm)} className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white" size="sm">
+                    {showReviewForm ? 'Annuler' : '+ Laisser un avis'}
+                  </Button>
+                )}
+              </div>
+
+              {/* Répartition */}
+              <div className="space-y-2">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Répartition</span>
+                {[5, 4, 3, 2, 1].map((starLevel) => {
+                  const count = reviews.filter(r => r.stars === starLevel).length;
+                  const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
+                  return (
+                    <div key={starLevel} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 w-12">{starLevel} ★</span>
+                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400 w-4 text-right">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1">Trier</label>
+                <Select value={reviewSort} onValueChange={(v) => setReviewSort(v as 'recent' | 'helpful')}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Les plus récents</SelectItem>
+                    <SelectItem value="helpful">Les plus utiles</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1">Rechercher</label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                  <Input value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} placeholder="Dans les avis..." className="pl-8 h-9 text-sm" />
+                </div>
+              </div>
+
+              {/* Liste des avis */}
+              <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
+                {filteredReviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="h-10 w-10 text-gray-300 dark:text-gray-700 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Aucun avis</p>
+                    <p className="text-xs text-gray-500">Soyez le premier à laisser un avis.</p>
+                    {isAuthenticated && (
+                      <Button onClick={() => setShowReviewForm(true)} className="mt-3 bg-orange-500 hover:bg-orange-600 text-white" size="sm">Laisser un avis</Button>
+                    )}
+                  </div>
+                ) : (
+                  filteredReviews.map((review) => (
+                    <div key={review.id} className="p-3 bg-white dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white">{review.stars}/5</span>
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <Star key={i} className={`h-3 w-3 ${i <= review.stars ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      {review.comment && (
+                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4 mb-2">{review.comment}</p>
+                      )}
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                        Avis du {review.created_at ? new Date(review.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'}
+                        {review.created_at && review.user?.name && (
+                          <span>, par {review.user.name.split(' ').map((n: string) => n[0]).join('.').toUpperCase()}</span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
+                        <button type="button" className="flex items-center gap-0.5 hover:text-orange-600 dark:hover:text-orange-400">
+                          <ThumbsUp className="h-3 w-3" /> Utile (0)
+                        </button>
+                        <button type="button" className="flex items-center gap-0.5 hover:text-red-600 dark:hover:text-red-400">
+                          <Flag className="h-3 w-3" /> Signaler
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
         {/* Similar Products */}
         {similarProducts.length > 0 && (

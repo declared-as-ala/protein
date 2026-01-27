@@ -3,11 +3,11 @@ import { getPacks } from '@/services/api';
 import { PacksPageClient } from './PacksPageClient';
 
 export const metadata: Metadata = {
-  title: 'Packs - Offres Spéciales | Sobitas',
-  description: 'Économisez avec nos packs spéciaux conçus pour répondre à vos objectifs spécifiques',
+  title: 'Packs & Offres Compléments Alimentaires Tunisie | SOBITAS',
+  description: 'Packs protéines et compléments à prix réduits. Économisez sur whey, créatine et gainer en Tunisie.',
   openGraph: {
-    title: 'Packs - Offres Spéciales | Sobitas',
-    description: 'Économisez avec nos packs spéciaux conçus pour répondre à vos objectifs spécifiques',
+    title: 'Packs & Offres Compléments Alimentaires Tunisie | SOBITAS',
+    description: 'Packs protéines et compléments à prix réduits. Économisez sur whey, créatine et gainer en Tunisie.',
     type: 'website',
   },
 };

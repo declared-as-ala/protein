@@ -2,19 +2,19 @@ import { Metadata } from 'next';
 import BrandsPageClient from './BrandsPageClient';
 
 export const metadata: Metadata = {
-  title: 'Nos Marques - Sobitas',
-  description: 'Découvrez toutes nos marques partenaires de compléments alimentaires et nutrition sportive.',
+  title: 'Marques de Compléments Alimentaires | SOBITAS Tunisie',
+  description: 'Optimum Nutrition, Biotech USA, MyProtein et plus. Toutes nos marques de protéines et compléments en Tunisie.',
   openGraph: {
-    title: 'Nos Marques - Sobitas',
-    description: 'Découvrez toutes nos marques partenaires de compléments alimentaires et nutrition sportive.',
+    title: 'Marques de Compléments Alimentaires | SOBITAS Tunisie',
+    description: 'Optimum Nutrition, Biotech USA et plus. Marques de protéines et compléments en Tunisie.',
     url: 'https://sobitas.tn/brands',
-    siteName: 'Sobitas',
+    siteName: 'SOBITAS',
     images: [
       {
         url: 'https://sobitas.tn/assets/img/logo/logo.webp',
         width: 1200,
         height: 630,
-        alt: 'Sobitas - Nos Marques',
+        alt: 'SOBITAS – Marques Compléments Tunisie',
       },
     ],
     locale: 'fr_FR',
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nos Marques - Sobitas',
-    description: 'Découvrez toutes nos marques partenaires de compléments alimentaires et nutrition sportive.',
+    title: 'Marques de Compléments Alimentaires | SOBITAS Tunisie',
+    description: 'Optimum Nutrition, Biotech USA et plus. Marques de protéines et compléments en Tunisie.',
     images: ['https://sobitas.tn/assets/img/logo/logo.webp'],
   },
   alternates: {

@@ -7,12 +7,8 @@ import { HeroSlider } from '@/app/components/HeroSlider';
 import { FeaturesSection } from '@/app/components/FeaturesSection';
 import { CategoryGrid } from '@/app/components/CategoryGrid';
 import { ProductSection } from '@/app/components/ProductSection';
+import { VentesFlashSection } from '@/app/components/VentesFlashSection';
 
-// Lazy load SmartEntryPaths - it's below the fold
-const SmartEntryPaths = dynamic(() => import('@/app/components/SmartEntryPaths').then(mod => ({ default: mod.SmartEntryPaths })), {
-  ssr: false,
-  loading: () => null,
-});
 import type { AccueilData, Product } from '@/types';
 import { getStorageUrl } from '@/services/api';
 
@@ -30,14 +26,6 @@ const PromoBanner = dynamic(() => import('@/app/components/PromoBanner').then(mo
   loading: () => null, // Don't show loading for banner
 });
 const BrandsSection = dynamic(() => import('@/app/components/BrandsSection').then(mod => ({ default: mod.BrandsSection })), {
-  ssr: false,
-  loading: () => null,
-});
-const TestimonialsSection = dynamic(() => import('@/app/components/TestimonialsSection').then(mod => ({ default: mod.TestimonialsSection })), {
-  ssr: false,
-  loading: () => null,
-});
-const BlogSection = dynamic(() => import('@/app/components/BlogSection').then(mod => ({ default: mod.BlogSection })), {
   ssr: false,
   loading: () => null,
 });
@@ -66,6 +54,7 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
     designation_fr: product.designation_fr,
     prix: product.prix,
     promo: product.promo,
+    promo_expiration_date: product.promo_expiration_date,
     cover: product.cover,
     new_product: product.new_product,
     best_seller: product.best_seller,
@@ -84,10 +73,17 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
     (accueil.packs || []).slice(0, 4).map(transformProduct),
     [accueil.packs, transformProduct]
   );
-  const flashSales = useMemo(() => 
-    (accueil.ventes_flash || []).slice(0, 4).map(transformProduct),
-    [accueil.ventes_flash, transformProduct]
-  );
+  // Ventes flash: only products with promo + future promo_expiration_date (match backend logic)
+  const flashSales = useMemo(() => {
+    const now = new Date();
+    const valid = (accueil.ventes_flash || []).filter((p) => {
+      if (p.promo == null || p.promo === undefined) return false;
+      if (!p.promo_expiration_date) return false;
+      const exp = new Date(p.promo_expiration_date);
+      return !isNaN(exp.getTime()) && exp.getTime() > now.getTime();
+    });
+    return valid.slice(0, 4).map(transformProduct);
+  }, [accueil.ventes_flash, transformProduct]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -97,18 +93,19 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
       <main>
         {/* Above the fold - Critical content - Hero must render first */}
         <HeroSlider slides={slides} />
-        {/* SmartEntryPaths - Below fold, can be deferred */}
-        <Suspense fallback={<div className="h-64 bg-gray-50 dark:bg-gray-900" />}>
-          <SmartEntryPaths />
-        </Suspense>
         {/* FeaturesSection - Fixed height to prevent CLS */}
         <div style={{ minHeight: '200px' }}>
           <FeaturesSection />
         </div>
         <CategoryGrid categories={accueil.categories || []} />
         
-        {/* Product sections */}
-        {newProducts.length > 0 && (
+        {/* Product sections – only when data comes from API (accueil) */}
+        {/* Ventes Flash: show only when there are valid flash products (promo + future expiry) */}
+        {flashSales.length > 0 && (
+          <VentesFlashSection products={flashSales as any} />
+        )}
+
+        {(accueil.new_product?.length ?? 0) > 0 && (
           <ProductSection
             id="products"
             title="Nouveaux Produits"
@@ -118,8 +115,8 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
             badgeText="New"
           />
         )}
-        
-        {bestSellers.length > 0 && (
+
+        {(accueil.best_sellers?.length ?? 0) > 0 && (
           <ProductSection
             title="Meilleurs Ventes"
             subtitle="Les produits les plus populaires"
@@ -129,17 +126,7 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
           />
         )}
 
-        {flashSales.length > 0 && (
-          <ProductSection
-            title="Ventes Flash"
-            subtitle="Offres limitées - Ne manquez pas ces promotions"
-            products={flashSales as any}
-            showBadge
-            badgeText="Promo"
-          />
-        )}
-        
-        {packs.length > 0 && (
+        {(accueil.packs?.length ?? 0) > 0 && (
           <ProductSection
             id="packs"
             title="Nos Packs"
@@ -154,12 +141,6 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
         </Suspense>
         <Suspense fallback={null}>
           <BrandsSection />
-        </Suspense>
-        <Suspense fallback={null}>
-          <TestimonialsSection />
-        </Suspense>
-        <Suspense fallback={null}>
-          <BlogSection articles={accueil.last_articles || []} />
         </Suspense>
       </main>
       

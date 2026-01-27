@@ -5,12 +5,12 @@ import { HomePageClient } from './components/HomePageClient';
 import type { AccueilData } from '@/types';
 
 export const metadata: Metadata = {
-  title: 'Sobitas - Protéine Tunisie | Boutique de Compléments Alimentaires',
-  description: 'Découvrez notre boutique de protéines en Tunisie ! Nous proposons une large gamme de produits protéines à des prix compétitifs. Whey, créatine, gainer, BCAA et plus.',
-  keywords: 'proteine tunisie, protein tunisie, whey protein, whey proteine tunisie, protéine whey tunisie, créatine monohydrate tunisie, gainer tunisie',
+  title: 'Protéine Tunisie | Whey, Créatine & Compléments – SOBITAS Sousse',
+  description: 'Boutique officielle de protéines et compléments alimentaires en Tunisie. Whey, créatine, gainer, BCAA. Livraison Sousse, Tunis et toute la Tunisie. ✓ Prix compétitifs ✓ Produits certifiés',
+  keywords: 'proteine tunisie, whey Tunisie, créatine Tunisie, compléments alimentaires Sousse, compléments alimentaires Tunis, acheter whey Tunisie, protéine musculation Tunisie',
   openGraph: {
-    title: 'Sobitas - Protéine Tunisie',
-    description: 'Découvrez notre boutique de protéines en Tunisie : whey, créatine, gainer, BCAA et plus !',
+    title: 'Protéine Tunisie | Whey, Créatine & Compléments – SOBITAS Sousse',
+    description: 'Boutique officielle de protéines et compléments en Tunisie. Livraison Sousse, Tunis. Whey, créatine, gainer, BCAA.',
     images: ['/assets/img/logo/logo.webp'],
     url: 'https://sobitas.tn',
     type: 'website',

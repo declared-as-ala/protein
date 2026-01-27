@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, User, Menu, X, Moon, Sun, Phone } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Moon, Sun, Phone, Package } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { useTheme } from 'next-themes';
 import { PremiumTopBar } from './PremiumTopBar';
@@ -35,15 +35,15 @@ export function Header() {
       
       {/* Top Bar */}
       <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-2">
             <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
-              <Phone className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden md:inline">+216 73 200 500</span>
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
+              <span>+216 73 200 500</span>
             </a>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden md:inline">Livraison gratuite à partir de 300 DT</span>
+          <div className="flex items-center">
+            <span className="text-center sm:text-left">Livraison gratuite à partir de 300 DT</span>
           </div>
         </div>
       </div>
@@ -96,6 +96,13 @@ export function Header() {
                         Mon Compte
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20">
+                      <Link href="/account/orders" className="flex items-center w-full">
+                        <Package className="h-4 w-4 mr-2" />
+                        Mes Commandes
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
                     <DropdownMenuItem 
                       onClick={logout}
                       className="cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
@@ -259,6 +266,12 @@ export function Header() {
                       <Button variant="outline" className="w-full justify-start" size="lg">
                         <User className="h-5 w-5 mr-2" />
                         Mon Compte
+                      </Button>
+                    </Link>
+                    <Link href="/account/orders" className="block" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start" size="lg">
+                        <Package className="h-5 w-5 mr-2" />
+                        Mes Commandes
                       </Button>
                     </Link>
                     <Button variant="outline" className="w-full justify-start" size="lg" onClick={() => { logout(); setMobileMenuOpen(false); }}>

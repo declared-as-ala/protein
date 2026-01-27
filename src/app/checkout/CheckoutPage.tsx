@@ -773,84 +773,128 @@ export default function CheckoutPage() {
           </Button>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informations de facturation</CardTitle>
+              <Card className="shadow-xl border-2 border-gray-200 dark:border-gray-800">
+                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-600 rounded-lg">
+                      <Shield className="h-5 w-5 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl">Informations de facturation</CardTitle>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Remplissez vos informations pour finaliser votre commande
+                  </p>
                 </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="nom">Nom *</Label>
-                        <Input
-                          id="nom"
-                          value={formData.nom}
-                          onChange={(e) => handleInputChange('nom', e.target.value)}
-                          required
-                        />
+                <CardContent className="p-6 sm:p-8">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Personal Information Section */}
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-800">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Informations personnelles</h3>
                       </div>
-                      <div>
-                        <Label htmlFor="prenom">Prénom *</Label>
-                        <Input
-                          id="prenom"
-                          value={formData.prenom}
-                          onChange={(e) => handleInputChange('prenom', e.target.value)}
-                          required
-                        />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <Label htmlFor="nom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Nom <span className="text-red-600">*</span>
+                          </Label>
+                          <Input
+                            id="nom"
+                            value={formData.nom}
+                            onChange={(e) => handleInputChange('nom', e.target.value)}
+                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            placeholder="Votre nom"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Prénom <span className="text-red-600">*</span>
+                          </Label>
+                          <Input
+                            id="prenom"
+                            value={formData.prenom}
+                            onChange={(e) => handleInputChange('prenom', e.target.value)}
+                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            placeholder="Votre prénom"
+                            required
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
-                          autoComplete="email"
-                          required
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <Label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Email <span className="text-red-600">*</span>
+                          </Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            autoComplete="email"
+                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            placeholder="votre@email.com"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone" className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Téléphone <span className="text-red-600">*</span>
+                          </Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            placeholder="+216 XX XXX XXX"
+                            required
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="phone">Téléphone 1 *</Label>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone2" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Téléphone 2 <span className="text-gray-400 text-xs">(optionnel)</span>
+                        </Label>
                         <Input
-                          id="phone"
+                          id="phone2"
                           type="tel"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          required
+                          value={formData.phone2}
+                          onChange={(e) => handleInputChange('phone2', e.target.value)}
+                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                          placeholder="+216 XX XXX XXX"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <Label htmlFor="phone2">Téléphone 2 (facultatif)</Label>
-                      <Input
-                        id="phone2"
-                        type="tel"
-                        value={formData.phone2}
-                        onChange={(e) => handleInputChange('phone2', e.target.value)}
-                      />
-                    </div>
+                    {/* Address Section */}
+                    <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-2 pb-2">
+                        <Truck className="h-5 w-5 text-red-600" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de facturation</h3>
+                      </div>
 
-                    <div>
-                      <Label htmlFor="pays">Pays/région</Label>
-                      <Input
-                        id="pays"
-                        value={formData.pays}
-                        onChange={(e) => handleInputChange('pays', e.target.value)}
-                        readOnly
-                        className="bg-gray-50 dark:bg-gray-800"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pays" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Pays
+                        </Label>
+                        <Input
+                          id="pays"
+                          value={formData.pays}
+                          onChange={(e) => handleInputChange('pays', e.target.value)}
+                          readOnly
+                          className="h-12 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 cursor-not-allowed"
+                        />
+                      </div>
 
                     {/* Address Selector */}
                     <AddressSelector
@@ -864,39 +908,53 @@ export default function CheckoutPage() {
                       required
                     />
 
-                    <div>
-                      <Label htmlFor="adresse1">Adresse ligne 1 *</Label>
-                      <Input
-                        id="adresse1"
-                        value={formData.adresse1}
-                        onChange={(e) => handleInputChange('adresse1', e.target.value)}
-                        required
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Adresse ligne 1 <span className="text-red-600">*</span>
+                        </Label>
+                        <Input
+                          id="adresse1"
+                          value={formData.adresse1}
+                          onChange={(e) => handleInputChange('adresse1', e.target.value)}
+                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                          placeholder="Rue, numéro, bâtiment..."
+                          required
+                        />
+                      </div>
 
-                    <div>
-                      <Label htmlFor="adresse2">Adresse ligne 2</Label>
-                      <Input
-                        id="adresse2"
-                        value={formData.adresse2}
-                        onChange={(e) => handleInputChange('adresse2', e.target.value)}
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
+                        </Label>
+                        <Input
+                          id="adresse2"
+                          value={formData.adresse2}
+                          onChange={(e) => handleInputChange('adresse2', e.target.value)}
+                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                          placeholder="Appartement, étage, etc."
+                        />
+                      </div>
 
-                    <div>
-                      <Label htmlFor="note">Notes de commande (facultatif)</Label>
-                      <textarea
-                        id="note"
-                        value={formData.note}
-                        onChange={(e) => handleInputChange('note', e.target.value)}
-                        className="w-full min-h-[100px] p-3 border border-gray-300 dark:border-gray-700 rounded-lg mt-1"
-                        placeholder="Commentaires concernant votre commande, ex. : consignes de livraison."
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="note" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Notes de commande <span className="text-gray-400 text-xs">(optionnel)</span>
+                        </Label>
+                        <textarea
+                          id="note"
+                          value={formData.note}
+                          onChange={(e) => handleInputChange('note', e.target.value)}
+                          className="w-full min-h-[120px] p-4 border-2 border-gray-300 dark:border-gray-700 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 resize-none"
+                          placeholder="Commentaires concernant votre commande, ex. : consignes de livraison, instructions spéciales..."
+                        />
+                      </div>
                     </div>
 
                     {/* Payment Method */}
-                    <div className="pt-6 border-t">
-                      <Label className="text-base font-semibold mb-4 block">Méthode de paiement</Label>
+                    <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-2 mb-6">
+                        <CreditCard className="h-5 w-5 text-red-600" />
+                        <Label className="text-lg font-bold text-gray-900 dark:text-white">Méthode de paiement</Label>
+                      </div>
                       <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cod' | 'card')}>
                         <div className="space-y-3">
                           {/* Cash on Delivery */}
@@ -1011,73 +1069,108 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Terms and Conditions */}
-                    <div className="flex items-start space-x-2 pt-4">
+                    <div className="flex items-start gap-3 pt-6 border-t border-gray-200 dark:border-gray-800 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                       <input
                         type="checkbox"
                         id="terms"
                         required
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        className="mt-1 h-5 w-5 rounded border-2 border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 cursor-pointer"
                       />
-                      <Label htmlFor="terms" className="text-sm cursor-pointer">
+                      <Label htmlFor="terms" className="text-sm cursor-pointer text-gray-700 dark:text-gray-300 leading-relaxed">
                         J'ai lu et j'accepte les{' '}
-                        <a href="/terms" className="text-red-600 hover:underline">
-                          conditions générales
+                        <a href="/terms" className="text-red-600 dark:text-red-400 hover:underline font-semibold">
+                          conditions générales de vente
+                        </a>
+                        {' '}et la{' '}
+                        <a href="/privacy" className="text-red-600 dark:text-red-400 hover:underline font-semibold">
+                          politique de confidentialité
                         </a>
                       </Label>
                     </div>
 
                     {/* Shipping Address */}
-                    <div className="pt-6 border-t">
-                      <div className="flex items-center space-x-2 mb-4">
+                    <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Truck className="h-5 w-5 text-red-600" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de livraison</h3>
+                      </div>
+                      
+                      <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-900/50 mb-6">
                         <Checkbox
                           id="sameAsBilling"
                           checked={sameAsBilling}
                           onCheckedChange={(checked) => setSameAsBilling(checked as boolean)}
+                          className="mt-1"
                         />
-                        <Label htmlFor="sameAsBilling" className="font-semibold">
-                          Adresse de livraison identique à l'adresse de facturation
+                        <Label htmlFor="sameAsBilling" className="font-semibold text-gray-900 dark:text-white cursor-pointer flex-1">
+                          Utiliser la même adresse pour la livraison
                         </Label>
                       </div>
 
                       {!sameAsBilling && (
-                        <div className="space-y-4 mt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="livraison_nom">Nom</Label>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-5 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                              <Label htmlFor="livraison_nom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                                Nom <span className="text-red-600">*</span>
+                              </Label>
                               <Input
                                 id="livraison_nom"
                                 value={formData.livraison_nom}
                                 onChange={(e) => handleInputChange('livraison_nom', e.target.value)}
+                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                                placeholder="Nom du destinataire"
+                                required
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="livraison_prenom">Prénom</Label>
+                            <div className="space-y-2">
+                              <Label htmlFor="livraison_prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                                Prénom <span className="text-red-600">*</span>
+                              </Label>
                               <Input
                                 id="livraison_prenom"
                                 value={formData.livraison_prenom}
                                 onChange={(e) => handleInputChange('livraison_prenom', e.target.value)}
+                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                                placeholder="Prénom du destinataire"
+                                required
                               />
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="livraison_email">Email</Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                              <Label htmlFor="livraison_email" className="text-sm font-semibold text-gray-900 dark:text-white">
+                                Email <span className="text-red-600">*</span>
+                              </Label>
                               <Input
                                 id="livraison_email"
                                 type="email"
                                 value={formData.livraison_email}
                                 onChange={(e) => handleInputChange('livraison_email', e.target.value)}
                                 autoComplete="email"
+                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                                placeholder="email@example.com"
+                                required
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="livraison_phone">Téléphone</Label>
+                            <div className="space-y-2">
+                              <Label htmlFor="livraison_phone" className="text-sm font-semibold text-gray-900 dark:text-white">
+                                Téléphone <span className="text-red-600">*</span>
+                              </Label>
                               <Input
                                 id="livraison_phone"
                                 type="tel"
                                 value={formData.livraison_phone}
                                 onChange={(e) => handleInputChange('livraison_phone', e.target.value)}
+                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                                placeholder="+216 XX XXX XXX"
+                                required
                               />
                             </div>
                           </div>
@@ -1094,42 +1187,51 @@ export default function CheckoutPage() {
                             label="Adresse de livraison"
                           />
 
-                          <div>
-                            <Label htmlFor="livraison_adresse1">Adresse ligne 1</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="livraison_adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
+                              Adresse ligne 1 <span className="text-red-600">*</span>
+                            </Label>
                             <Input
                               id="livraison_adresse1"
                               value={formData.livraison_adresse1}
                               onChange={(e) => handleInputChange('livraison_adresse1', e.target.value)}
+                              className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                              placeholder="Rue, numéro, bâtiment..."
+                              required
                             />
                           </div>
 
-                          <div>
-                            <Label htmlFor="livraison_adresse2">Adresse ligne 2</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="livraison_adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
+                              Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
+                            </Label>
                             <Input
                               id="livraison_adresse2"
                               value={formData.livraison_adresse2}
                               onChange={(e) => handleInputChange('livraison_adresse2', e.target.value)}
+                              className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                              placeholder="Appartement, étage, etc."
                             />
                           </div>
-                        </div>
+                        </motion.div>
                       )}
                     </div>
 
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-14 text-lg font-bold"
+                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-16 text-lg font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Traitement...
+                          Traitement de votre commande...
                         </>
                       ) : (
                         <>
                           <Shield className="h-5 w-5 mr-2" />
-                          Confirmer la commande
+                          Confirmer et payer
                         </>
                       )}
                     </Button>
@@ -1146,16 +1248,21 @@ export default function CheckoutPage() {
               animate={{ opacity: 1, x: 0 }}
               className="sticky top-4"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <ShoppingCart className="h-5 w-5" />
-                    Votre commande
+              <Card className="shadow-xl border-2 border-gray-200 dark:border-gray-800">
+                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-gray-200 dark:border-gray-800">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 bg-red-600 rounded-lg">
+                      <ShoppingCart className="h-5 w-5 text-white" />
+                    </div>
+                    <span>Récapitulatif</span>
                   </CardTitle>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {items.length} {items.length === 1 ? 'article' : 'articles'}
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-6 space-y-6">
                   {/* Items */}
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
                     {items.map((item) => {
                       const price = (item.product as any).prix || (item.product as any).price || 0;
                       const productName = (item.product as any).designation_fr || (item.product as any).name;
@@ -1163,9 +1270,9 @@ export default function CheckoutPage() {
                         ? getStorageUrl((item.product as any).cover) 
                         : null;
                       return (
-                        <div key={item.product.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div key={item.product.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                           {productImage && (
-                            <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
+                            <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600">
                               <Image
                                 src={productImage}
                                 alt={productName}
@@ -1176,63 +1283,79 @@ export default function CheckoutPage() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 mb-1">
                               {productName}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Quantité: {item.quantity}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">
-                              {(price * item.quantity).toFixed(0)} TND
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {price.toFixed(0)} TND / unité
-                            </p>
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Qté: {item.quantity}
+                              </p>
+                              <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                                {(price * item.quantity).toFixed(0)} DT
+                              </p>
+                            </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span>Sous-total</span>
-                      <span className="font-semibold">{totalPrice.toFixed(0)} TND</span>
+                  {/* Summary */}
+                  <div className="border-t border-gray-200 dark:border-gray-800 pt-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Sous-total</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{totalPrice.toFixed(0)} DT</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Expédition</span>
-                      <span className={shippingCost === 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'font-semibold'}>
-                        {shippingCost === 0 ? 'Livraison gratuite' : `AFEX LIVRAISON 3/4 JRS: ${shippingCost} DT`}
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Expédition</span>
+                      <span className={`font-semibold ${shippingCost === 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
+                        {shippingCost === 0 ? (
+                          <span className="flex items-center gap-1">
+                            <Truck className="h-4 w-4" />
+                            Gratuite
+                          </span>
+                        ) : (
+                          `${shippingCost} DT`
+                        )}
                       </span>
                     </div>
-                    {totalPrice < FREE_SHIPPING_THRESHOLD && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Ajoutez {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(0)} DT pour bénéficier de la livraison gratuite
-                      </p>
+                    {totalPrice < FREE_SHIPPING_THRESHOLD && shippingCost > 0 && (
+                      <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+                        <p className="text-xs font-medium text-green-800 dark:text-green-200">
+                          💡 Ajoutez {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(0)} DT pour la livraison gratuite !
+                        </p>
+                      </div>
                     )}
-                    <div className="border-t pt-2 flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span className="text-red-600 dark:text-red-400">
+                    <div className="border-t border-gray-300 dark:border-gray-700 pt-3 flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                      <span className="text-2xl font-bold text-red-600 dark:text-red-400">
                         {finalTotal.toFixed(0)} DT
                       </span>
                     </div>
                   </div>
 
                   {/* Trust Badges */}
-                  <div className="pt-4 border-t space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Shield className="h-4 w-4 text-green-600" />
-                      <span>Paiement sécurisé</span>
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                      <Shield className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Paiement sécurisé</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">Vos données sont protégées</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Truck className="h-4 w-4 text-blue-600" />
-                      <span>Livraison rapide</span>
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                      <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Livraison rapide</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">3-4 jours ouvrés</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <CheckCircle2 className="h-4 w-4 text-yellow-600" />
-                      <span>Garantie qualité</span>
+                    <div className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
+                      <CheckCircle2 className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Garantie qualité</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">Produits certifiés</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

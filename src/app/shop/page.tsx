@@ -3,8 +3,8 @@ import { getAllProducts, getCategories, getAllBrands } from '@/services/api';
 import { ShopPageClient } from './ShopPageClient';
 
 export const metadata: Metadata = {
-  title: 'Boutique - Tous nos Produits | Sobitas',
-  description: 'Découvrez notre large gamme de produits protéines, créatine, gainer, BCAA et compléments alimentaires en Tunisie.',
+  title: 'Boutique Protéines & Compléments Alimentaires Tunisie | SOBITAS',
+  description: 'Découvrez nos protéines, créatine, gainer et BCAA en Tunisie. Large choix, livraison rapide. Filtrez par marque et catégorie.',
 };
 
 async function getShopData() {

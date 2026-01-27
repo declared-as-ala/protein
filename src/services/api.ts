@@ -112,8 +112,13 @@ export const getAllProducts = async (): Promise<{ products: Product[]; brands: B
   return response.data;
 };
 
-export const getProductDetails = async (slug: string): Promise<Product> => {
-  const response = await api.get<Product>(`/product_details/${slug}`);
+export const getProductDetails = async (slug: string, cacheBust?: boolean): Promise<Product> => {
+  // Remove any query parameters from slug if present
+  const cleanSlug = slug.split('?')[0];
+  const url = cacheBust 
+    ? `/product_details/${cleanSlug}?t=${Date.now()}`
+    : `/product_details/${cleanSlug}`;
+  const response = await api.get<Product>(url);
   return response.data;
 };
 

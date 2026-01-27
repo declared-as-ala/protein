@@ -54,27 +54,30 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
     const name = (product as any).name || product.designation_fr || '';
     const slug = product.slug || '';
     const image = (product as any).image || (product.cover ? getStorageUrl(product.cover) : '');
-    const basePrice = (product as any).price || product.prix || 0;
+    // Old/original price: prefer prix (API) so ventes flash show correct crossed-out price
+    const oldPrice = product.prix ?? (product as any).price ?? 0;
     const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
-    const newPrice = promoPrice || basePrice;
-    const discount = promoPrice && basePrice ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
+    const newPrice = promoPrice ?? oldPrice;
+    const discount = promoPrice && oldPrice && oldPrice > 0 ? Math.round(((oldPrice - promoPrice) / oldPrice) * 100) : 0;
     const isNew = product.new_product === 1;
     const isBestSeller = product.best_seller === 1;
     const rating = product.note || 0;
+    const reviews = (product as any).reviews?.filter((r: any) => r.publier === 1) || [];
+    const reviewCount = reviews.length;
     const isInStock = (product as any).rupture === 1 || (product as any).rupture === undefined;
     
     return {
       name,
       slug,
       image,
-      basePrice,
+      oldPrice,
       promoPrice,
       newPrice,
-      oldPrice: basePrice,
       discount,
       isNew,
       isBestSeller,
       rating,
+      reviewCount,
       isInStock,
     };
   }, [product]);
@@ -193,40 +196,58 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           </div>
         </div>
 
-        {/* Rating - Smaller on mobile */}
+        {/* Rating & Reviews - Enhanced display */}
         {productData.rating > 0 && (
-          <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5`}>
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                  i < Math.floor(productData.rating) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
-                }`}
-                aria-hidden="true"
-              />
-            ))}
-            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 ml-0.5 sm:ml-1">({productData.rating.toFixed(1)})</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5${productData.reviewCount > 0 ? `, ${productData.reviewCount} avis` : ''}`}>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                    i < Math.floor(productData.rating) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
+                  }`}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-white">
+                {productData.rating.toFixed(1)}
+              </span>
+              {productData.reviewCount > 0 && (
+                <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  ({productData.reviewCount})
+                </span>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Price - Smaller on mobile */}
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
-          <div className="flex items-center gap-1 sm:gap-2">
-            {productData.oldPrice && productData.newPrice && productData.oldPrice !== productData.newPrice ? (
-              <>
-                <span className="text-sm sm:text-lg font-bold text-red-600 dark:text-red-500">
-                  {productData.newPrice} DT
-                </span>
-                <span className="text-xs sm:text-sm text-gray-400 line-through" aria-label={`Prix original: ${productData.oldPrice} DT`}>
-                  {productData.oldPrice} DT
-                </span>
-              </>
-            ) : (
-              <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">
-                {productData.newPrice || productData.oldPrice} DT
+        {/* Price – ventes flash / promo: old price شطب (strikethrough), promo prominent */}
+        <div className="flex flex-wrap items-baseline gap-2 mb-2 sm:mb-3">
+          {productData.promoPrice != null && productData.oldPrice !== productData.newPrice ? (
+            <>
+              <span className="text-base sm:text-xl font-bold text-red-600 dark:text-red-400 tabular-nums">
+                {productData.newPrice} DT
               </span>
-            )}
-          </div>
+              <span
+                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through tabular-nums"
+                style={{ textDecorationThickness: '1.5px' }}
+                aria-label={`Prix barré (شطب): ${productData.oldPrice} DT`}
+              >
+                {productData.oldPrice} DT
+              </span>
+              {productData.discount > 0 && (
+                <span className="rounded-md bg-red-100 dark:bg-red-950/50 px-1.5 py-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
+                  -{productData.discount}%
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white tabular-nums">
+              {productData.newPrice || productData.oldPrice} DT
+            </span>
+          )}
         </div>
 
         {/* Add to Cart Button - Always visible on mobile */}

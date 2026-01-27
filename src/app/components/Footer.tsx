@@ -64,37 +64,6 @@ export function Footer() {
 
   return (
     <footer id="contact" className="bg-gradient-to-b from-gray-900 via-gray-950 to-black text-gray-300 border-t border-gray-800">
-      {/* Premium Trust Section */}
-      <div className="border-b border-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Shield, text: 'Paiement Sécurisé', color: 'text-green-400' },
-              { icon: Truck, text: 'Livraison Rapide', color: 'text-blue-400' },
-              { icon: Award, text: 'Produits Certifiés', color: 'text-yellow-400' },
-              { icon: Gift, text: 'Garantie Qualité', color: 'text-purple-400' },
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                  className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
-                >
-                  <div className={`${item.color} p-2 sm:p-3 rounded-full bg-gray-900`}>
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <span className="text-xs sm:text-sm font-semibold text-center">{item.text}</span>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer - Compact on mobile with accordion */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
         {/* Mobile: 2-column accordion, Desktop: 4-column grid */}
@@ -219,18 +188,18 @@ export function Footer() {
         <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Contact Info & Social */}
           <div className="space-y-6">
-            <div className="relative h-12 w-auto">
+            <div className="relative h-12 w-auto mb-8 shrink-0">
               <Image
                 src="https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp"
                 alt="Protein.tn"
                 width={150}
                 height={48}
-                className="h-12 w-auto"
+                className="h-12 w-auto object-contain"
                 style={{ width: 'auto', height: 'auto' }}
                 priority
               />
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm text-gray-400 leading-relaxed mt-5 pt-2">
               PROTEINE TUNISIE - SOBITAS votre distributeur officiel d'articles de sport et de compléments alimentaires en Tunisie.
             </p>
             
@@ -461,13 +430,14 @@ export function Footer() {
           <div className="rounded-xl overflow-hidden h-64 bg-gray-800">
             {shouldLoadMap ? (
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3235.786044474428!2d10.608766315195954!3d35.82829698016563!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd8b4e8e8e8e8f%3A0x8e8e8e8e8e8e8e8e!2sSousse%2C%20Tunisia!5e0!3m2!1sen!2stn!4v1642509876543!5m2!1sen!2stn"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3234.515082636619!2d10.630613400000001!3d35.8363715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1302131b30e891b1%3A0x51dae0f25849b20c!2sPROT%C3%89INE%20TUNISIE%20%E2%80%93%20SOBITAS%20%7C%20Whey%20%26%20Mat%C3%A9riel%20Musculation%20Sousse!5e0!3m2!1sen!2stn!4v1769445253876!5m2!1sen!2stn"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
-                title="Protein.tn Location"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="PROTÉINE TUNISIE – SOBITAS | Whey & Matériel Musculation Sousse"
               ></iframe>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">

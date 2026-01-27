@@ -5,8 +5,8 @@ import { BlogPageClient } from './BlogPageClient';
 import { LoadingSpinner } from '@/app/components/LoadingSpinner';
 
 export const metadata: Metadata = {
-  title: 'Blog - Articles & Conseils | Sobitas',
-  description: 'Découvrez nos articles sur la nutrition sportive, l\'entraînement et les compléments alimentaires',
+  title: 'Blog Nutrition Sportive & Compléments | SOBITAS Tunisie',
+  description: 'Guides, conseils prise de masse, choix whey et créatine. Tout pour la nutrition sportive en Tunisie.',
 };
 
 async function getBlogData() {

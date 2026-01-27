@@ -6,56 +6,42 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 
-// Static hero slides using images from public/hero (hero 1 is first in carousel)
+// Hero slides – images from public/hero/webp only (WebP for performance)
 const heroSlides = [
   {
     id: 1,
     titre: "Protéines Premium",
     description: "Commencez votre journée avec l'énergie parfaite : protéines premium de qualité pour booster vos performances et atteindre vos objectifs",
     lien: "/shop",
-    image: "/hero/hero1.png",
+    image: "/hero/webp/hero1.webp",
   },
   {
     id: 2,
-    titre: "Optimum Nutrition",
-    description: "Découvrez la gamme Optimum Nutrition, leader mondial en compléments alimentaires",
+    titre: "Compléments Alimentaires",
+    description: "Toute notre gamme de compléments pour votre performance et votre bien-être",
     lien: "/shop",
-    image: "/hero/GET_YOKD_OPTIMUM_NUTRITION_BANNER_DESKTOP-min.webp",
+    image: "/hero/webp/hero%202.webp",
   },
   {
     id: 3,
     titre: "Protéines Premium",
     description: "Notre sélection exclusive de protéines de qualité supérieure pour vos objectifs",
     lien: "/shop",
-    image: "/hero/hero 6.jpg",
+    image: "/hero/webp/hero%206.webp",
   },
   {
     id: 4,
-    titre: "Compléments Alimentaires",
-    description: "Toute notre gamme de compléments pour votre performance et votre bien-être",
-    lien: "/shop",
-    image: "/hero/hero 2.png",
-  },
-  {
-    id: 5,
     titre: "Performance & Résultats",
     description: "Optimisez vos performances avec nos produits premium et certifiés",
     lien: "/shop",
-    image: "/hero/hero 4.webp",
+    image: "/hero/webp/87c08beaae1ef66964cca248d39dbe63.webp",
   },
   {
-    id: 6,
-    titre: "Excellence & Innovation",
-    description: "Découvrez les dernières innovations en compléments alimentaires",
-    lien: "/shop",
-    image: "/hero/hero 5.png",
-  },
-  {
-    id: 7,
+    id: 5,
     titre: "Gamme Complète",
     description: "Explorez notre collection complète de produits pour tous vos besoins fitness",
     lien: "/shop",
-    image: "/hero/IMG_3293.webp",
+    image: "/hero/webp/ss.webp",
   },
 ];
 

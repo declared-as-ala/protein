@@ -153,11 +153,11 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* Preconnect to API for faster requests - 310ms savings */}
+        {/* Preconnect first for LCP/PageSpeed – image API origin */}
         <link rel="preconnect" href="https://admin.sobitas.tn" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://admin.sobitas.tn" />
-        {/* Preload critical hero image for LCP optimization */}
-        <link rel="preload" as="image" href="/hero/hero1.jpg" fetchPriority="high" />
+        {/* Preload LCP hero image (Next/Image will request /_next/image?url=…; this warms cache) */}
+        <link rel="preload" as="image" href="/hero/hero1.png" fetchPriority="high" />
         {/* Structured data: Organization + LocalBusiness + WebSite for SEO (Tunisia local & rich results) */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />

@@ -4,11 +4,6 @@ import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { HeroSlider } from '@/app/components/HeroSlider';
 
-import { FeaturesSection } from '@/app/components/FeaturesSection';
-import { CategoryGrid } from '@/app/components/CategoryGrid';
-import { ProductSection } from '@/app/components/ProductSection';
-import { VentesFlashSection } from '@/app/components/VentesFlashSection';
-
 import type { AccueilData, Product } from '@/types';
 import { getStorageUrl } from '@/services/api';
 
@@ -19,6 +14,24 @@ const Header = dynamic(() => import('@/app/components/Header').then(mod => ({ de
 const PremiumTopBar = dynamic(() => import('@/app/components/PremiumTopBar').then(mod => ({ default: mod.PremiumTopBar })), {
   ssr: true,
 });
+
+// Below-the-fold: dynamic import to reduce main bundle and TBT on mobile (PageSpeed)
+const FeaturesSection = dynamic(
+  () => import('@/app/components/FeaturesSection').then(mod => ({ default: mod.FeaturesSection })),
+  { ssr: true, loading: () => <div className="min-h-[200px]" aria-hidden /> }
+);
+const CategoryGrid = dynamic(
+  () => import('@/app/components/CategoryGrid').then(mod => ({ default: mod.CategoryGrid })),
+  { ssr: true, loading: () => <div className="py-8 min-h-[240px]" aria-hidden /> }
+);
+const VentesFlashSection = dynamic(
+  () => import('@/app/components/VentesFlashSection').then(mod => ({ default: mod.VentesFlashSection })),
+  { ssr: true, loading: () => null }
+);
+const ProductSection = dynamic(
+  () => import('@/app/components/ProductSection').then(mod => ({ default: mod.ProductSection })),
+  { ssr: true, loading: () => null }
+);
 
 // Lazy load non-critical below-the-fold components
 const PromoBanner = dynamic(() => import('@/app/components/PromoBanner').then(mod => ({ default: mod.PromoBanner })), {

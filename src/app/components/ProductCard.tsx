@@ -140,7 +140,7 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
               className="w-full h-full object-contain p-2 sm:p-4 sm:group-hover:scale-110 transition-transform duration-300"
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              quality={75}
+              quality={70}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';

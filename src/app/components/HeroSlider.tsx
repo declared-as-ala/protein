@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 
-// Static hero slides using all local images for optimal performance
+// Static hero slides using images from public/hero (hero 1 is first in carousel)
 const heroSlides = [
   {
     id: 1,
     titre: "Protéines Premium",
     description: "Commencez votre journée avec l'énergie parfaite : protéines premium de qualité pour booster vos performances et atteindre vos objectifs",
     lien: "/shop",
-    image: "/hero/hero1.jpg",
+    image: "/hero/hero1.png",
   },
   {
     id: 2,
@@ -76,7 +76,7 @@ const SlideImage = memo(({
   className?: string;
 }) => {
   if (!isFirst) {
-    // Lazy load non-first slides for faster initial load
+    // Lazy load non-first slides for faster initial load (quality 75 for mobile PageSpeed)
     return (
       <Image
         src={src}
@@ -84,14 +84,13 @@ const SlideImage = memo(({
         fill
         className={className || 'object-cover'}
         sizes="100vw"
-        quality={85}
+        quality={75}
         loading="lazy"
       />
     );
   }
   
-  // First slide - critical for LCP, highest priority
-  // Image is 1920x800, perfect for carousel - use object-cover to fill space
+  // First slide - critical for LCP; quality 75 saves ~9 KiB and improves LCP on mobile
   return (
     <Image
       src={src}
@@ -100,8 +99,8 @@ const SlideImage = memo(({
       priority
       fetchPriority="high"
       className={className || 'object-cover'}
-      sizes="100vw"
-      quality={90}
+      sizes="(max-width: 768px) 100vw, 100vw"
+      quality={75}
     />
   );
 });

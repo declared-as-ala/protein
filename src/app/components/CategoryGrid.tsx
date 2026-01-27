@@ -43,9 +43,9 @@ export function CategoryGrid({ categories = [] }: CategoryGridProps) {
                         alt={category.designation_fr}
                         fill
                         className="object-cover transition-transform duration-300 sm:group-hover:scale-110"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                         loading="lazy"
-                        quality={75}
+                        quality={70}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';

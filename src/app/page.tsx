@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   other: {
-    'preload-image': '/hero/hero1.jpg',
+    'preload-image': '/hero/hero1.png',
   },
 };
 

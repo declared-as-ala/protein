@@ -77,11 +77,11 @@ export function Header() {
             </motion.div>
 
             {/* Right Actions: Profile, Theme, Cart, Mobile Menu (all visible on mobile) */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px] relative z-50">
+                    <Button variant="ghost" size="icon" className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px] relative z-50 shrink-0">
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -116,7 +116,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" className="flex h-10 min-h-[44px] px-3 sm:px-4 text-sm sm:text-base font-semibold" asChild>
+                <Button variant="ghost" size="sm" className="flex shrink-0 h-10 min-h-[44px] px-2 sm:px-3 lg:px-4 text-xs sm:text-sm lg:text-base font-semibold" asChild>
                   <Link href="/login">Connexion</Link>
                 </Button>
               )}
@@ -125,21 +125,17 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px]"
-                aria-label="Toggle theme"
+                className="flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px]"
+                aria-label="Changer le thème"
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
               
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {/* Cart: open drawer on all screen sizes (mobile + desktop); from drawer user can go to cart page or checkout */}
+              <motion.div className="shrink-0" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px]"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px]"
                   onClick={() => setCartDrawerOpen(true)}
                   aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}
                 >
@@ -157,13 +153,14 @@ export function Header() {
                 </Button>
               </motion.div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile: hamburger always visible (44px touch target, border for clarity) */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
+                className="lg:hidden flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl min-h-[44px] min-w-[44px] h-11 w-11 border border-gray-200 dark:border-gray-700"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
+                aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
@@ -253,6 +250,15 @@ export function Header() {
                 QUI SOMMES NOUS
               </Link>
               <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  size="lg"
+                  onClick={() => { setCartDrawerOpen(true); setMobileMenuOpen(false); }}
+                >
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  Panier{cartItemsCount > 0 ? ` (${cartItemsCount})` : ''}
+                </Button>
                 {isAuthenticated ? (
                   <>
                     <Link href="/account" className="block" onClick={() => setMobileMenuOpen(false)}>

@@ -116,7 +116,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" className="flex shrink-0 h-9 min-h-[40px] sm:h-10 sm:min-h-[44px] px-1.5 sm:px-3 lg:px-4 text-[11px] sm:text-sm lg:text-base font-semibold" asChild>
+                <Button variant="outline" size="sm" className="flex shrink-0 h-9 min-h-[40px] sm:h-10 sm:min-h-[44px] px-2.5 sm:px-3 lg:px-4 text-[11px] sm:text-sm lg:text-base font-semibold rounded-lg sm:rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700" asChild>
                   <Link href="/login">Connexion</Link>
                 </Button>
               )}

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
+import { getStorageUrl } from '@/services/api';
+import type { Slide } from '@/types';
 
-// Hero slides – images from public/hero/webp only (WebP for performance)
-const heroSlides = [
+// Fallback static slides (used only if API returns no slides)
+const fallbackSlides = [
   {
     id: 1,
     titre: "Protéines Premium",
@@ -15,38 +17,10 @@ const heroSlides = [
     lien: "/shop",
     image: "/hero/webp/hero1.webp",
   },
-  {
-    id: 2,
-    titre: "Compléments Alimentaires",
-    description: "Toute notre gamme de compléments pour votre performance et votre bien-être",
-    lien: "/shop",
-    image: "/hero/webp/hero%202.webp",
-  },
-  {
-    id: 3,
-    titre: "Protéines Premium",
-    description: "Notre sélection exclusive de protéines de qualité supérieure pour vos objectifs",
-    lien: "/shop",
-    image: "/hero/webp/hero%206.webp",
-  },
-  {
-    id: 4,
-    titre: "Performance & Résultats",
-    description: "Optimisez vos performances avec nos produits premium et certifiés",
-    lien: "/shop",
-    image: "/hero/webp/87c08beaae1ef66964cca248d39dbe63.webp",
-  },
-  {
-    id: 5,
-    titre: "Gamme Complète",
-    description: "Explorez notre collection complète de produits pour tous vos besoins fitness",
-    lien: "/shop",
-    image: "/hero/webp/ss.webp",
-  },
 ];
 
 interface HeroSliderProps {
-  slides?: any[]; // Keep for backward compatibility but won't be used
+  slides?: Slide[] | any[];
 }
 
 // Optimized slide image component - optimized for production performance
@@ -95,8 +69,21 @@ SlideImage.displayName = 'SlideImage';
 export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Use static hero slides (ignore API slides for performance)
-  const slidesToUse = heroSlides;
+  // Transform API slides: use getStorageUrl for images, sort by ordre, fallback to static if empty
+  const slidesToUse = useMemo(() => {
+    if (!slides || slides.length === 0) return fallbackSlides;
+    
+    return slides
+      .filter((slide: any) => slide.image || slide.image) // Only slides with images
+      .sort((a: any, b: any) => (a.ordre || 0) - (b.ordre || 0)) // Sort by ordre
+      .map((slide: any) => ({
+        id: slide.id,
+        titre: slide.titre || 'Protéines Premium',
+        description: slide.description || 'Découvrez nos produits premium',
+        lien: slide.lien || '/shop',
+        image: slide.image ? getStorageUrl(slide.image) : '/hero/webp/hero1.webp', // Use getStorageUrl for API images
+      }));
+  }, [slides]);
 
   useEffect(() => {
     if (slidesToUse.length <= 1) return;

@@ -249,13 +249,13 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
         <div className="flex-shrink-0 pt-3 mt-2 border-t border-gray-100 dark:border-gray-700/60 [@media(hover:hover)]:lg:hidden">
           <Button
             size="sm"
-            className={`w-full min-h-[44px] rounded-xl font-semibold text-xs sm:text-sm active:scale-[0.98] transition-transform duration-150 select-none px-2 ${productData.isInStock ? 'bg-red-600 hover:bg-red-700 text-white shadow-[0_2px_8px_rgba(220,38,38,0.35)]' : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white'}`}
+            className={`w-full min-h-[44px] rounded-xl font-semibold text-[11px] sm:text-sm active:scale-[0.98] transition-transform duration-150 select-none px-2 ${productData.isInStock ? 'bg-red-600 hover:bg-red-700 text-white shadow-[0_2px_8px_rgba(220,38,38,0.35)]' : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-white'}`}
             onClick={handleAddToCart}
             disabled={isAdding || !productData.isInStock}
             aria-label={`Ajouter ${productData.name} au panier`}
           >
             <ShoppingCart className={`size-3.5 sm:size-4 shrink-0 mr-1.5 sm:mr-2 ${isCompact ? 'sm:mr-1.5' : ''}`} aria-hidden="true" />
-            <span className="truncate">{!productData.isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}</span>
+            {!productData.isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
           </Button>
         </div>
       </div>

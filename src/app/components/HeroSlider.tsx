@@ -150,10 +150,10 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
 
   return (
     <section 
-      className="relative w-full overflow-hidden bg-gray-900" 
+      className="relative w-full overflow-hidden bg-gray-900 h-[75vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh]" 
       style={{ 
-        aspectRatio: '12/5',
-        height: 'clamp(55vh, 60vh, 65vh)' // Mobile: 55-65vh max
+        aspectRatio: '12/6',
+        minHeight: '500px', // Ensure minimum height on all devices
       }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}

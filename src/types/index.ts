@@ -56,6 +56,7 @@ export interface Brand {
   designation_fr: string;
   logo?: string;
   alt_cover?: string;
+  description_fr?: string;
 }
 
 export interface Aroma {
@@ -96,6 +97,7 @@ export interface Article {
   id: number;
   slug: string;
   designation_fr: string;
+  description?: string;
   description_fr?: string;
   cover?: string;
   created_at?: string;

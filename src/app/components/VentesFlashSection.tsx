@@ -108,8 +108,8 @@ export const VentesFlashSection = memo(function VentesFlashSection({ products }:
           </div>
           <div className="hidden sm:block">
             <Button variant="outline" className="group min-h-[44px] border-orange-300 dark:border-orange-600 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30" asChild>
-              <Link href="/shop" aria-label="Voir toutes les ventes flash">
-                Voir tout
+              <Link href="/offres" aria-label="Voir toutes les offres et promos">
+                Voir toutes les offres
                 <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </Link>
             </Button>

@@ -24,7 +24,7 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
     >
       <Link
         href={`/shop?brand=${brand.id}`}
-        className="block bg-white dark:bg-gray-800 rounded-xl p-6 h-32 w-48 md:w-56 flex items-center justify-center border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 hover:shadow-xl transition-all duration-300"
+        className="block bg-white dark:bg-gray-800 rounded-xl p-6 h-36 w-56 md:w-64 flex items-center justify-center border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 hover:shadow-xl transition-all duration-300"
       >
         {logoUrl && !imageError ? (
           <div className="relative w-full h-full">
@@ -33,7 +33,7 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
               alt={brand.designation_fr || brand.alt_cover || 'Brand logo'}
               fill
               className="object-contain p-2 group-hover:scale-110 transition-transform duration-300"
-              sizes="(max-width: 768px) 192px, 224px"
+              sizes="(max-width: 768px) 224px, 256px"
               loading="lazy"
               unoptimized
               onError={() => {
@@ -54,25 +54,19 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
   );
 }
 
+const SCROLL_AMOUNT = 280;
+const AUTO_SCROLL_INTERVAL_MS = 2500;
+
 export function BrandsSection() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchBrands = async () => {
       try {
         const brandsData = await getAllBrands();
-        console.log('Brands data:', brandsData); // Debug log
-        // Log first brand to see structure
-        if (brandsData.length > 0) {
-          console.log('First brand structure:', brandsData[0]);
-          console.log('First brand logo:', brandsData[0].logo);
-          console.log('First brand logo URL:', brandsData[0].logo ? getStorageUrl(brandsData[0].logo) : 'No logo');
-          // Filter out brands without logos for now to see if that's the issue
-          const brandsWithLogos = brandsData.filter(b => b.logo);
-          console.log(`Brands with logos: ${brandsWithLogos.length} out of ${brandsData.length}`);
-        }
         setBrands(brandsData);
       } catch (error) {
         console.error('Error fetching brands:', error);
@@ -83,6 +77,28 @@ export function BrandsSection() {
 
     fetchBrands();
   }, []);
+
+  // Auto-scroll in real-time, pause on hover; duplicate list for seamless loop
+  const brandsForScroll = brands.length > 0 ? [...brands, ...brands] : [];
+
+  useEffect(() => {
+    if (brands.length === 0 || isPaused) return;
+
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const tick = () => {
+      const { scrollWidth } = el;
+      const halfWidth = scrollWidth / 2;
+      let scrollLeft = el.scrollLeft;
+      if (scrollLeft >= halfWidth) el.scrollLeft = scrollLeft - halfWidth;
+      const next = el.scrollLeft + SCROLL_AMOUNT;
+      el.scrollTo({ left: next, behavior: 'smooth' });
+    };
+
+    const id = setInterval(tick, AUTO_SCROLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [brands.length, isPaused]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -137,13 +153,15 @@ export function BrandsSection() {
             <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          {/* Scrollable Brands Container */}
+          {/* Scrollable Brands Container - auto-scroll, pause on hover */}
           <div
             ref={scrollContainerRef}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
             className="flex gap-6 overflow-x-auto scroll-smooth pb-4 px-2 scrollbar-hide"
           >
-            {brands.map((brand, index) => (
-              <BrandCard key={brand.id} brand={brand} index={index} />
+            {brandsForScroll.map((brand, index) => (
+              <BrandCard key={`${brand.id}-${index}`} brand={brand} index={index} />
             ))}
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Header } from '@/app/components/Header';
 import { Footer } from '@/app/components/Footer';
 import { ProductCard } from '@/app/components/ProductCard';
@@ -16,6 +17,7 @@ import { Pagination } from '@/app/components/ui/pagination';
 import type { Product, Category, Brand } from '@/types';
 import { searchProducts, getProductsByCategory, getProductsBySubCategory, getProductsByBrand } from '@/services/api';
 import { getStorageUrl } from '@/services/api';
+import { getEffectivePrice } from '@/util/productPrice';
 
 interface ShopPageClientProps {
   productsData: {
@@ -39,6 +41,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
   const [isSearching, setIsSearching] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
   
   const PRODUCTS_PER_PAGE = 12;
 
@@ -118,10 +121,10 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
     return found ? { id: found.id, name: found.name, slug: found.slug } : null;
   };
 
-  // Get min and max prices
+  // Get min and max prices (use effective price: promo if valid, else prix)
   const priceBounds = useMemo(() => {
     const prices = products
-      .map(p => p.promo && p.promo_expiration_date ? p.promo : p.prix)
+      .map(p => getEffectivePrice(p))
       .filter((price): price is number => price !== null && price !== undefined);
     if (prices.length === 0) return { min: 0, max: 1000 };
     return {
@@ -159,6 +162,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
+        setCurrentBrand(null);
         setIsSearching(true);
         try {
           // For better multi-word search, always use client-side filtering on all products
@@ -188,6 +192,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
           setIsSearching(false);
         }
       } else if (selectedCategories.length > 0) {
+        setCurrentBrand(null);
         // Filter by category/subcategory
         try {
           const categoryParam = selectedCategories[0];
@@ -300,12 +305,15 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
           const brandId = selectedBrands[0];
           const result = await getProductsByBrand(brandId);
           setProducts(result.products || []);
+          setCurrentBrand(result.brand || null);
         } catch (error) {
           console.error('Brand filter error:', error);
+          setCurrentBrand(null);
         }
       } else {
         // Reset to all products
         setProducts(productsData.products || []);
+        setCurrentBrand(null);
       }
     }, 500); // Debounce search
 
@@ -316,9 +324,9 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
   const filteredProducts = useMemo(() => {
     let filtered = products;
 
-    // Price filter
+    // Price filter (effective price: promo if valid, else prix)
     filtered = filtered.filter(product => {
-      const price = product.promo && product.promo_expiration_date ? product.promo : product.prix;
+      const price = getEffectivePrice(product);
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
@@ -392,6 +400,40 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        {/* Brand description – shown when filtering by brand (e.g. /shop?brand=1) */}
+        {currentBrand && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/80 p-6 md:p-8 shadow-sm"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
+              {currentBrand.logo && (
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <Image
+                    src={getStorageUrl(currentBrand.logo)}
+                    alt={currentBrand.designation_fr}
+                    fill
+                    className="object-contain p-2"
+                    sizes="112px"
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                  {currentBrand.designation_fr}
+                </h2>
+                {currentBrand.description_fr && (
+                  <div
+                    className="prose prose-sm md:prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: currentBrand.description_fr }}
+                  />
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -399,7 +441,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
           className="mb-10"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Tous nos produits
+            {currentBrand ? `Produits ${currentBrand.designation_fr}` : 'Tous nos produits'}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
             {isSearching ? (

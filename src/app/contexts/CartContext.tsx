@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product as DataProduct } from '@/data/products';
 import type { Product as ApiProduct } from '@/types';
 import { toast } from 'sonner';
+import { getEffectivePrice as getEffectivePriceUtil } from '@/util/productPrice';
 
 // Support both Product types
 type Product = ApiProduct | DataProduct;
@@ -13,14 +14,9 @@ export interface CartItem {
   quantity: number;
 }
 
-/** Effective unit price: promo if valid (promo + future expiration), else prix/price */
+/** Effective unit price: promo if valid (promo + no expiry or future expiration), else prix/price. Uses shared util. */
 function getEffectivePrice(product: Product): number {
-  const p = product as { promo?: number; promo_expiration_date?: string; prix?: number; price?: number };
-  if (p.promo != null && p.promo !== undefined && p.promo_expiration_date) {
-    const exp = new Date(p.promo_expiration_date);
-    if (!isNaN(exp.getTime()) && exp.getTime() > Date.now()) return p.promo;
-  }
-  return (p as any).price ?? (p as any).prix ?? 0;
+  return getEffectivePriceUtil(product as any);
 }
 
 interface CartContextType {
@@ -32,6 +28,9 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getEffectivePrice: (product: Product) => number;
+  /** Drawer open state: desktop only opens on add-to-cart; mobile never opens (just cart icon count). */
+  cartDrawerOpen: boolean;
+  setCartDrawerOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -39,6 +38,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -87,6 +87,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return [...prevItems, { product, quantity }];
       }
     });
+    // Open cart drawer on desktop only (not mobile – user wants only cart icon count on mobile)
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setCartDrawerOpen(true);
+    }
   };
 
   const removeFromCart = (productId: number) => {
@@ -129,6 +133,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         getTotalItems,
         getTotalPrice,
         getEffectivePrice,
+        cartDrawerOpen,
+        setCartDrawerOpen,
       }}
     >
       {children}

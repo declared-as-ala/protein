@@ -14,11 +14,12 @@ import { Badge } from '@/app/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { Minus, Plus, ShoppingCart, Star, Shield, Truck, Award, ArrowLeft, Heart, Share2, ZoomIn, CheckCircle2, Loader2, BadgeCheck, ThumbsUp, Flag, Search } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Star, Shield, Truck, Award, ArrowLeft, Heart, Share2, ZoomIn, CheckCircle2, Loader2, BadgeCheck, Search, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Card, CardContent } from '@/app/components/ui/card';
 import type { Product, Review } from '@/types';
 import { getStorageUrl, addReview, getProductDetails } from '@/services/api';
+import { hasValidPromo } from '@/util/productPrice';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -58,16 +59,17 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
   }, [initialProduct]);
 
   const basePrice = product.prix || 0;
-  const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
-  const displayPrice = promoPrice || basePrice;
+  const hasPromo = hasValidPromo(product);
+  const promoPrice = hasPromo && product.promo != null ? product.promo : null;
+  const displayPrice = promoPrice ?? basePrice;
   const oldPrice = promoPrice ? basePrice : null;
-  const discount = promoPrice ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
+  const discount = promoPrice != null && basePrice > 0 ? Math.round(((basePrice - promoPrice) / basePrice) * 100) : 0;
   const rating = product.note || (reviews.length > 0 
     ? reviews.reduce((s, r) => s + r.stars, 0) / reviews.length 
     : 0);
   const reviewCount = reviews.length;
 
-  // Filter and sort reviews for display
+  // Filter and sort reviews for display (on product page show first N; full list on reviews page)
   const filteredReviews = [...reviews]
     .filter(r => !reviewSearch || (r.comment?.toLowerCase().includes(reviewSearch.toLowerCase())))
     .sort((a, b) => {
@@ -78,6 +80,7 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
       }
       return 0;
     });
+  const reviewsToShowOnPage = filteredReviews.slice(0, 4);
 
   const images = product.cover ? [product.cover] : [];
   const productImage = images[0] ? getStorageUrl(images[0]) : '';
@@ -481,7 +484,7 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
             </motion.div>
           </div>
 
-          {/* RIGHT: Avis (toujours visible, pas besoin de cliquer) */}
+          {/* RIGHT: Avis (enhanced, bigger cards, link to full page) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -489,19 +492,19 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
             className="lg:col-span-1"
           >
             <div className="sticky top-4 space-y-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 pb-2">Avis clients</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 pb-3">Avis clients</h3>
 
               {/* Review Form quand ouvert */}
               {showReviewForm && isAuthenticated && (
-                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-orange-200 dark:border-orange-900/50">
-                  <h4 className="font-bold mb-3 text-gray-900 dark:text-white">Votre avis</h4>
+                <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-orange-200 dark:border-orange-900/50">
+                  <h4 className="font-bold mb-3 text-base text-gray-900 dark:text-white">Votre avis</h4>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Note *</label>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button key={star} onClick={() => setReviewStars(star)} className="focus:outline-none" aria-label={`Noter ${star} étoile${star > 1 ? 's' : ''}`}>
-                            <Star className={`h-7 w-7 ${star <= reviewStars ? 'fill-orange-500 text-orange-500' : 'fill-gray-300 text-gray-300 dark:fill-gray-600'}`} />
+                            <Star className={`h-8 w-8 ${star <= reviewStars ? 'fill-orange-500 text-orange-500' : 'fill-gray-300 text-gray-300 dark:fill-gray-600'}`} />
                           </button>
                         ))}
                       </div>
@@ -521,52 +524,60 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
                 </div>
               )}
 
-              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{rating > 0 ? rating.toFixed(1) : '–'}</span>
-                  <span className="text-gray-500 dark:text-gray-400">/ 5</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{rating > 0 ? rating.toFixed(1) : '–'}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-lg">/ 5</span>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className={`h-4 w-4 ${i <= Math.round(rating) ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
+                    <Star key={i} className={`h-5 w-5 ${i <= Math.round(rating) ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
                   ))}
                 </div>
-                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm">
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm font-medium">
                   <BadgeCheck className="h-4 w-4 shrink-0" />
                   <span>Avis Vérifiés</span>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Basé sur {reviewCount} avis soumis à un contrôle
                 </p>
                 {isAuthenticated && (
-                  <Button onClick={() => setShowReviewForm(!showReviewForm)} className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white" size="sm">
+                  <Button onClick={() => setShowReviewForm(!showReviewForm)} className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white" size="default">
                     {showReviewForm ? 'Annuler' : '+ Laisser un avis'}
+                  </Button>
+                )}
+                {reviewCount > 0 && (
+                  <Button variant="outline" className="mt-3 w-full" size="default" asChild>
+                    <Link href={`/products/${product.slug}/reviews`} className="flex items-center justify-center gap-2">
+                      Voir tous les avis ({reviewCount})
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
                   </Button>
                 )}
               </div>
 
               {/* Répartition */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">Répartition</span>
                 {[5, 4, 3, 2, 1].map((starLevel) => {
                   const count = reviews.filter(r => r.stars === starLevel).length;
                   const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
                   return (
                     <div key={starLevel} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600 dark:text-gray-400 w-12">{starLevel} ★</span>
-                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 w-12">{starLevel} ★</span>
+                      <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-xs text-gray-600 dark:text-gray-400 w-4 text-right">{count}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 w-6 text-right">{count}</span>
                     </div>
                   );
                 })}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1">Trier</label>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-1">Trier</label>
                 <Select value={reviewSort} onValueChange={(v) => setReviewSort(v as 'recent' | 'helpful')}>
-                  <SelectTrigger className="h-9 text-sm">
+                  <SelectTrigger className="h-10 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -577,54 +588,56 @@ export function ProductDetailClient({ product: initialProduct, similarProducts }
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1">Rechercher</label>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-1">Rechercher</label>
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                  <Input value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} placeholder="Dans les avis..." className="pl-8 h-9 text-sm" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} placeholder="Dans les avis..." className="pl-9 h-10 text-sm" />
                 </div>
               </div>
 
-              {/* Liste des avis */}
-              <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
-                {filteredReviews.length === 0 ? (
+              {/* Liste des avis (preview: first 4, bigger cards) */}
+              <div className="space-y-4">
+                {reviewsToShowOnPage.length === 0 ? (
                   <div className="text-center py-8">
-                    <Star className="h-10 w-10 text-gray-300 dark:text-gray-700 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Aucun avis</p>
-                    <p className="text-xs text-gray-500">Soyez le premier à laisser un avis.</p>
+                    <Star className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+                    <p className="text-base font-medium text-gray-600 dark:text-gray-400">Aucun avis</p>
+                    <p className="text-sm text-gray-500 mt-1">Soyez le premier à laisser un avis.</p>
                     {isAuthenticated && (
-                      <Button onClick={() => setShowReviewForm(true)} className="mt-3 bg-orange-500 hover:bg-orange-600 text-white" size="sm">Laisser un avis</Button>
+                      <Button onClick={() => setShowReviewForm(true)} className="mt-4 bg-orange-500 hover:bg-orange-600 text-white" size="default">Laisser un avis</Button>
                     )}
                   </div>
                 ) : (
-                  filteredReviews.map((review) => (
-                    <div key={review.id} className="p-3 bg-white dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">{review.stars}/5</span>
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <Star key={i} className={`h-3 w-3 ${i <= review.stars ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
-                          ))}
+                  <>
+                    {reviewsToShowOnPage.map((review) => (
+                      <div key={review.id} className="p-4 bg-white dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">{review.stars}/5</span>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <Star key={i} className={`h-4 w-4 ${i <= review.stars ? 'fill-orange-500 text-orange-500' : 'fill-gray-200 text-gray-200 dark:fill-gray-700'}`} />
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      {review.comment && (
-                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4 mb-2">{review.comment}</p>
-                      )}
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                        Avis du {review.created_at ? new Date(review.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'}
-                        {review.created_at && review.user?.name && (
-                          <span>, par {review.user.name.split(' ').map((n: string) => n[0]).join('.').toUpperCase()}</span>
+                        {review.comment && (
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4 mb-2">{review.comment}</p>
                         )}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
-                        <button type="button" className="flex items-center gap-0.5 hover:text-orange-600 dark:hover:text-orange-400">
-                          <ThumbsUp className="h-3 w-3" /> Utile (0)
-                        </button>
-                        <button type="button" className="flex items-center gap-0.5 hover:text-red-600 dark:hover:text-red-400">
-                          <Flag className="h-3 w-3" /> Signaler
-                        </button>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Avis du {review.created_at ? new Date(review.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'}
+                          {review.created_at && review.user?.name && (
+                            <span>, par {review.user.name.split(' ').map((n: string) => n[0]).join('.').toUpperCase()}</span>
+                          )}
+                        </p>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {filteredReviews.length > 4 && (
+                      <Button variant="outline" className="w-full" size="default" asChild>
+                        <Link href={`/products/${product.slug}/reviews`} className="flex items-center justify-center gap-2">
+                          Voir tous les avis ({reviewCount})
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

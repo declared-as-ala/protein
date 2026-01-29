@@ -10,7 +10,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Progress } from '@/app/components/ui/progress';
 import { Badge } from '@/app/components/ui/badge';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Sparkles, Shield, Truck, Gift, TrendingUp, Zap, X } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Sparkles, Shield, Truck, TrendingUp, X } from 'lucide-react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 import { motion, AnimatePresence } from 'motion/react';
 import { productsData } from '@/data/products';
@@ -40,22 +40,6 @@ export default function CartPage() {
   // Calculate remaining amount for free shipping
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - totalPrice);
   const freeShippingProgress = Math.min(100, (totalPrice / FREE_SHIPPING_THRESHOLD) * 100);
-
-  // Calculate nutrition summary
-  const nutritionSummary = useMemo(() => {
-    // Mock nutrition data - in real app, this would come from product data
-    const totalProtein = items.reduce((sum, item) => {
-      // Estimate: ~25g protein per serving, 1 serving per item
-      return sum + (25 * item.quantity);
-    }, 0);
-
-    const totalCalories = items.reduce((sum, item) => {
-      // Estimate: ~120 calories per serving
-      return sum + (120 * item.quantity);
-    }, 0);
-
-    return { totalProtein, totalCalories };
-  }, [items]);
 
   // Smart upsells - products not in cart
   const upsellProducts = useMemo(() => {
@@ -254,35 +238,6 @@ export default function CartPage() {
                     );
                   })}
                 </AnimatePresence>
-              </div>
-            </motion.div>
-
-            {/* Nutrition Summary Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-2xl shadow-lg border border-red-200 dark:border-red-900 p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Zap className="h-6 w-6 text-red-600 dark:text-red-400" />
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Résumé Nutritionnel
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Protéines</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                    {nutritionSummary.totalProtein}g
-                  </p>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Calories</p>
-                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    {nutritionSummary.totalCalories}
-                  </p>
-                </div>
               </div>
             </motion.div>
 

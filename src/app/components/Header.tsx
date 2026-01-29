@@ -22,9 +22,8 @@ import {
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { getTotalItems } = useCart();
+  const { getTotalItems, cartDrawerOpen, setCartDrawerOpen } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
   const cartItemsCount = getTotalItems();
 
@@ -35,11 +34,16 @@ export function Header() {
       
       {/* Top Bar */}
       <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-sm sm:text-base">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
             <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
               <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
               <span>+216 73 200 500</span>
+            </a>
+            <span className="hidden sm:inline text-gray-500" aria-hidden="true">|</span>
+            <a href="tel:+21627612500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 27 612 500">
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
+              <span>+216 27 612 500</span>
             </a>
           </div>
           <div className="flex items-center">
@@ -72,12 +76,12 @@ export function Header() {
               </Link>
             </motion.div>
 
-            {/* Right Actions: Profile, Theme, Cart, Mobile Menu */}
+            {/* Right Actions: Profile, Theme, Cart, Mobile Menu (all visible on mobile) */}
             <div className="flex items-center gap-2 sm:gap-3">
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 relative z-50">
+                    <Button variant="ghost" size="icon" className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px] relative z-50">
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -112,7 +116,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" className="hidden sm:flex h-10 px-4" asChild>
+                <Button variant="ghost" size="sm" className="flex h-10 min-h-[44px] px-3 sm:px-4 text-sm sm:text-base font-semibold" asChild>
                   <Link href="/login">Connexion</Link>
                 </Button>
               )}
@@ -121,7 +125,7 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10"
+                className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px]"
                 aria-label="Toggle theme"
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -131,10 +135,30 @@ export function Header() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
+                {/* Desktop: open cart drawer from the right. Mobile: link to cart page (no popup). */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px]"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px] md:flex hidden"
+                  onClick={() => setCartDrawerOpen(true)}
+                  aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}
+                >
+                  <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                  {cartItemsCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
+                      aria-label={`${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''} dans le panier`}
+                    >
+                      {cartItemsCount}
+                    </motion.span>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px] md:hidden"
                   asChild
                 >
                   <Link href="/cart" aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}>
@@ -168,27 +192,24 @@ export function Header() {
 
           {/* Bottom Row: Desktop Navigation */}
           <nav className="hidden lg:flex items-center justify-center space-x-6 xl:space-x-8 pb-4 border-t border-gray-200/50 dark:border-gray-800/50 pt-4">
-            <Link href="/" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               ACCUEIL
             </Link>
             <ProductsDropdown />
-            <Link href="/packs" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/packs" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               PACKS
             </Link>
-            <Link href="/brands" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/brands" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               MARQUES
             </Link>
-            <Link href="/blog" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/blog" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               BLOG
             </Link>
-            <Link href="/contact" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/contact" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               CONTACT
             </Link>
-            <Link href="/about" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
+            <Link href="/about" className="text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
               QUI SOMMES NOUS
-            </Link>
-            <Link href="/calculators" className="text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors whitespace-nowrap px-2 py-1">
-              CALCULATEURS
             </Link>
           </nav>
         </div>
@@ -204,61 +225,53 @@ export function Header() {
             <nav className="px-4 py-6 space-y-3">
               <Link 
                 href="/" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 ACCUEIL
               </Link>
               <Link 
                 href="/shop" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 NOS PRODUITS
               </Link>
               <Link 
                 href="/packs" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 PACKS
               </Link>
               <Link 
                 href="/brands" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 MARQUES
               </Link>
               <Link 
                 href="/blog" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 BLOG
               </Link>
               <Link 
                 href="/contact" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 CONTACT
               </Link>
               <Link 
                 href="/about" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
+                className="block text-[15px] font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 QUI SOMMES NOUS
               </Link>
-              <Link 
-                href="/calculators" 
-                className="block text-base font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                CALCULATEURS
-              </Link>
-              
               <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
                 {isAuthenticated ? (
                   <>
@@ -302,7 +315,7 @@ export function Header() {
       </header>
 
       {/* Cart Drawer */}
-      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      <CartDrawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen} />
     </>
   );
 }

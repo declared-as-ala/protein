@@ -17,6 +17,10 @@ interface ProductSectionProps {
   showBadge?: boolean;
   badgeText?: string;
   id?: string;
+  /** Link for "Voir tout" button (default /shop). Use e.g. /packs for packs section. */
+  viewAllHref?: string;
+  /** Label for "Voir tout" button (default "Voir tout"). */
+  viewAllLabel?: string;
 }
 
 export const ProductSection = memo(function ProductSection({
@@ -25,7 +29,9 @@ export const ProductSection = memo(function ProductSection({
   products,
   showBadge,
   badgeText,
-  id
+  id,
+  viewAllHref = '/shop',
+  viewAllLabel = 'Voir tout',
 }: ProductSectionProps) {
   return (
     <section id={id} className="py-8 sm:py-12 md:py-20 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
@@ -45,8 +51,8 @@ export const ProductSection = memo(function ProductSection({
           
           <div className="hidden sm:block">
             <Button variant="outline" className="group min-h-[44px]" asChild>
-              <Link href="/shop" aria-label="Voir tous les produits">
-                Voir tout
+              <Link href={viewAllHref} aria-label={viewAllLabel}>
+                {viewAllLabel}
                 <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </Link>
             </Button>

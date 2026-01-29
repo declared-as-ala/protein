@@ -13,7 +13,6 @@ import Image from 'next/image';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
-import { Checkbox } from '@/app/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { ArrowLeft, ShoppingCart, Shield, Truck, CheckCircle2, Loader2, CreditCard, Wallet, Printer, List, ArrowRight, Package } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -31,50 +30,31 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
-  const [sameAsBilling, setSameAsBilling] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod');
   const [orderData, setOrderData] = useState<{ order: Order; orderDetails: any[] } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   
-  // Address selector states
+  // Single address (livraison) selector state
   const [gouvernorat, setGouvernorat] = useState('');
   const [delegation, setDelegation] = useState('');
   const [localite, setLocalite] = useState('');
   const [codePostal, setCodePostal] = useState('');
-  
-  // Shipping address selector states
-  const [livraisonGouvernorat, setLivraisonGouvernorat] = useState('');
-  const [livraisonDelegation, setLivraisonDelegation] = useState('');
-  const [livraisonLocalite, setLivraisonLocalite] = useState('');
-  const [livraisonCodePostal, setLivraisonCodePostal] = useState('');
 
-  // Form state
+  // Form state: one address (adresse de livraison) only
   const [formData, setFormData] = useState({
-    // Billing
-    nom: user?.name?.split(' ')[0] || '',
-    prenom: user?.name?.split(' ').slice(1).join(' ') || '',
-    email: user?.email || '',
-    phone: '',
+    livraison_nom: user?.name?.split(' ')[0] || '',
+    livraison_prenom: user?.name?.split(' ').slice(1).join(' ') || '',
+    livraison_email: user?.email || '',
+    livraison_phone: '',
     phone2: '',
     pays: 'Tunisie',
-    region: '',
-    ville: '',
-    code_postale: codePostal,
-    adresse1: '',
-    adresse2: '',
-    // Shipping
-    livraison_nom: '',
-    livraison_prenom: '',
-    livraison_email: '',
-    livraison_phone: '',
     livraison_region: '',
     livraison_ville: '',
-    livraison_code_postale: livraisonCodePostal,
+    livraison_code_postale: '',
     livraison_adresse1: '',
     livraison_adresse2: '',
-    // Other
     note: '',
-    livraison: 1, // 1 = livraison activée, 0 = pas de livraison
+    livraison: 1,
   });
 
   useEffect(() => {
@@ -88,49 +68,15 @@ export default function CheckoutPage() {
     }
   }, [items, router, isOrderComplete, isSubmitting, currentStep]);
 
-  // Sync shipping address when sameAsBilling checkbox changes
-  useEffect(() => {
-    if (sameAsBilling) {
-      setFormData(prev => ({
-        ...prev,
-        livraison_nom: prev.nom,
-        livraison_prenom: prev.prenom,
-        livraison_email: prev.email,
-        livraison_phone: prev.phone,
-        livraison_region: prev.region,
-        livraison_ville: prev.ville,
-        livraison_code_postale: prev.code_postale,
-        livraison_adresse1: prev.adresse1,
-        livraison_adresse2: prev.adresse2,
-      }));
-      // Sync address selector states
-      setLivraisonGouvernorat(gouvernorat);
-      setLivraisonDelegation(delegation);
-      setLivraisonLocalite(localite);
-      setLivraisonCodePostal(codePostal);
-    }
-  }, [sameAsBilling, gouvernorat, delegation, localite, codePostal]);
-  
-  // Update formData when address selector values change
+  // Sync formData when address selector values change
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
-      region: gouvernorat,
-      ville: localite || delegation, // Use localite if available, otherwise delegation
-      code_postale: codePostal,
+      livraison_region: gouvernorat,
+      livraison_ville: localite || delegation,
+      livraison_code_postale: codePostal,
     }));
   }, [gouvernorat, delegation, localite, codePostal]);
-  
-  useEffect(() => {
-    if (!sameAsBilling) {
-      setFormData(prev => ({
-        ...prev,
-        livraison_region: livraisonGouvernorat,
-        livraison_ville: livraisonLocalite || livraisonDelegation,
-        livraison_code_postale: livraisonCodePostal,
-      }));
-    }
-  }, [livraisonGouvernorat, livraisonDelegation, livraisonLocalite, livraisonCodePostal, sameAsBilling]);
 
   // Memoize price calculations to avoid recalculating on every render
   const totalPrice = useMemo(() => getTotalPrice(), [items, getTotalPrice]);
@@ -143,39 +89,11 @@ export default function CheckoutPage() {
   // Memoized handler to prevent unnecessary re-renders
   // Using a stable reference to avoid recreating the function on every render
   const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData(prev => {
-      // Create new object only if value actually changed
-      if (prev[field as keyof typeof prev] === value) {
-        return prev;
-      }
-      
-      const updated = { ...prev, [field]: value };
-      
-      // If sameAsBilling is true and we're updating a billing field, sync shipping fields
-      if (sameAsBilling) {
-        const billingToShippingMap: Record<string, string> = {
-          nom: 'livraison_nom',
-          prenom: 'livraison_prenom',
-          email: 'livraison_email',
-          phone: 'livraison_phone',
-          region: 'livraison_region',
-          ville: 'livraison_ville',
-          code_postale: 'livraison_code_postale',
-          adresse1: 'livraison_adresse1',
-          adresse2: 'livraison_adresse2',
-        };
-        
-        const shippingField = billingToShippingMap[field];
-        if (shippingField) {
-          (updated as any)[shippingField] = value;
-        }
-      }
-      
-      return updated;
-    });
-  }, [sameAsBilling]);
+    setFormData(prev =>
+      prev[field as keyof typeof prev] === value ? prev : { ...prev, [field]: value }
+    );
+  }, []);
 
-  // Memoize address selector handlers to prevent re-renders
   const handleGouvernoratChange = useCallback((value: string) => {
     setGouvernorat(value);
     setDelegation('');
@@ -192,71 +110,29 @@ export default function CheckoutPage() {
   const handleLocaliteChange = useCallback((value: string, postalCode: string) => {
     setLocalite(value);
     setCodePostal(postalCode);
-    setFormData(prev => ({
-      ...prev,
-      code_postale: postalCode,
-      ville: value || delegation,
-    }));
-  }, [delegation]);
-
-  const handleLivraisonGouvernoratChange = useCallback((value: string) => {
-    setLivraisonGouvernorat(value);
-    setLivraisonDelegation('');
-    setLivraisonLocalite('');
-    setLivraisonCodePostal('');
   }, []);
-
-  const handleLivraisonDelegationChange = useCallback((value: string) => {
-    setLivraisonDelegation(value);
-    setLivraisonLocalite('');
-    setLivraisonCodePostal('');
-  }, []);
-
-  const handleLivraisonLocaliteChange = useCallback((value: string, postalCode: string) => {
-    setLivraisonLocalite(value);
-    setLivraisonCodePostal(postalCode);
-    setFormData(prev => ({
-      ...prev,
-      livraison_code_postale: postalCode,
-      livraison_ville: value || livraisonDelegation,
-    }));
-  }, [livraisonDelegation]);
 
   const validateForm = () => {
-    const required = ['nom', 'prenom', 'email', 'phone', 'adresse1'];
+    const required = ['livraison_nom', 'livraison_prenom', 'livraison_email', 'livraison_phone', 'livraison_adresse1'];
     for (const field of required) {
       if (!formData[field as keyof typeof formData]) {
-        toast.error(`Le champ ${field} est requis`);
+        toast.error('Veuillez remplir tous les champs obligatoires');
         return false;
       }
     }
-    
-    // Validate address selector fields
     if (!gouvernorat || !delegation || !localite) {
       toast.error('Veuillez sélectionner le gouvernorat, la délégation et la localité');
       return false;
     }
-    
-    if (!formData.email.includes('@')) {
+    if (!formData.livraison_email.includes('@')) {
       toast.error('Email invalide');
       return false;
     }
-    
-    // Validate phone format (Tunisian phone numbers - 8 digits)
-    const phoneDigits = formData.phone.replace(/\s/g, '');
+    const phoneDigits = formData.livraison_phone.replace(/\s/g, '');
     if (phoneDigits.length < 8) {
       toast.error('Numéro de téléphone invalide (minimum 8 chiffres)');
       return false;
     }
-    
-    // Validate shipping address if different
-    if (!sameAsBilling) {
-      if (!livraisonGouvernorat || !livraisonDelegation || !livraisonLocalite) {
-        toast.error('Veuillez compléter l\'adresse de livraison');
-        return false;
-      }
-    }
-    
     return true;
   };
 
@@ -270,17 +146,32 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // Prepare order data with proper type conversions
-      // code_postale must be an integer (or null), livraison_code_postale can be string
-      const orderData: OrderRequest = {
+      // One address: send same values for billing and livraison (API expects both)
+      const orderPayload: OrderRequest = {
         commande: {
-          ...formData,
-          // Convert code_postale to number or null (backend expects integer)
-          code_postale: formData.code_postale 
-            ? (isNaN(Number(formData.code_postale)) ? null : Number(formData.code_postale))
+          nom: formData.livraison_nom,
+          prenom: formData.livraison_prenom,
+          email: formData.livraison_email,
+          phone: formData.livraison_phone,
+          pays: formData.pays,
+          region: formData.livraison_region,
+          ville: formData.livraison_ville,
+          code_postale: formData.livraison_code_postale
+            ? (isNaN(Number(formData.livraison_code_postale)) ? null : Number(formData.livraison_code_postale))
             : null,
-          // livraison_code_postale as string or null
+          adresse1: formData.livraison_adresse1,
+          adresse2: formData.livraison_adresse2 || undefined,
+          livraison_nom: formData.livraison_nom,
+          livraison_prenom: formData.livraison_prenom,
+          livraison_email: formData.livraison_email,
+          livraison_phone: formData.livraison_phone,
+          livraison_region: formData.livraison_region,
+          livraison_ville: formData.livraison_ville,
           livraison_code_postale: formData.livraison_code_postale || null,
+          livraison_adresse1: formData.livraison_adresse1,
+          livraison_adresse2: formData.livraison_adresse2 || undefined,
+          note: formData.note || undefined,
+          livraison: formData.livraison,
           frais_livraison: shippingCost,
           user_id: user?.id,
         },
@@ -291,7 +182,7 @@ export default function CheckoutPage() {
         })),
       };
 
-      const response = await createOrder(orderData);
+      const response = await createOrder(orderPayload);
       
       // Get order ID from response (could be response.id or response.commande.id)
       const orderId = response.id || (response as any).commande?.id || (response as any).data?.id;
@@ -323,16 +214,16 @@ export default function CheckoutPage() {
           order: {
             id: Number(orderId),
             numero: (response as any).numero || `#${orderId}`,
-            nom: formData.nom,
-            prenom: formData.prenom,
-            email: formData.email,
-            phone: formData.phone,
+            nom: formData.livraison_nom,
+            prenom: formData.livraison_prenom,
+            email: formData.livraison_email,
+            phone: formData.livraison_phone,
             pays: formData.pays,
-            region: formData.region,
-            ville: formData.ville,
-            code_postale: formData.code_postale?.toString(),
-            adresse1: formData.adresse1,
-            adresse2: formData.adresse2,
+            region: formData.livraison_region,
+            ville: formData.livraison_ville,
+            code_postale: formData.livraison_code_postale?.toString(),
+            adresse1: formData.livraison_adresse1,
+            adresse2: formData.livraison_adresse2,
             livraison: formData.livraison,
             frais_livraison: shippingCost,
             prix_ht: totalPrice,
@@ -667,9 +558,9 @@ export default function CheckoutPage() {
                     </p>
                   </div>
 
-                  {/* Billing Address */}
+                  {/* Delivery Address (single address) */}
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-2">Adresse de facturation</h3>
+                    <h3 className="text-lg font-semibold mb-2">Adresse de livraison</h3>
                     <div className="text-gray-600 dark:text-gray-400">
                       <p>{order?.nom || ''} {order?.prenom || ''}</p>
                       <p>{order?.adresse1 || ''}</p>
@@ -787,61 +678,59 @@ export default function CheckoutPage() {
                 <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-gray-200 dark:border-gray-800">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-red-600 rounded-lg">
-                      <Shield className="h-5 w-5 text-white" />
+                      <Truck className="h-5 w-5 text-white" />
                     </div>
-                    <CardTitle className="text-2xl">Informations de facturation</CardTitle>
+                    <CardTitle className="text-2xl">Adresse de livraison</CardTitle>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Remplissez vos informations pour finaliser votre commande
+                    Remplissez votre adresse de livraison pour finaliser votre commande
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
                   <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Personal Information Section */}
+                    {/* Single address form */}
                     <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-800">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Informations personnelles</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Informations et adresse</h3>
                       </div>
-                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-2">
-                          <Label htmlFor="nom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <Label htmlFor="livraison_nom" className="text-sm font-semibold text-gray-900 dark:text-white">
                             Nom <span className="text-red-600">*</span>
                           </Label>
                           <Input
-                            id="nom"
-                            value={formData.nom}
-                            onChange={(e) => handleInputChange('nom', e.target.value)}
+                            id="livraison_nom"
+                            value={formData.livraison_nom}
+                            onChange={(e) => handleInputChange('livraison_nom', e.target.value)}
                             className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                             placeholder="Votre nom"
                             required
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <Label htmlFor="livraison_prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
                             Prénom <span className="text-red-600">*</span>
                           </Label>
                           <Input
-                            id="prenom"
-                            value={formData.prenom}
-                            onChange={(e) => handleInputChange('prenom', e.target.value)}
+                            id="livraison_prenom"
+                            value={formData.livraison_prenom}
+                            onChange={(e) => handleInputChange('livraison_prenom', e.target.value)}
                             className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                             placeholder="Votre prénom"
                             required
                           />
                         </div>
                       </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-2">
-                          <Label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <Label htmlFor="livraison_email" className="text-sm font-semibold text-gray-900 dark:text-white">
                             Email <span className="text-red-600">*</span>
                           </Label>
                           <Input
-                            id="email"
+                            id="livraison_email"
                             type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            value={formData.livraison_email}
+                            onChange={(e) => handleInputChange('livraison_email', e.target.value)}
                             autoComplete="email"
                             className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                             placeholder="votre@email.com"
@@ -849,21 +738,20 @@ export default function CheckoutPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="phone" className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <Label htmlFor="livraison_phone" className="text-sm font-semibold text-gray-900 dark:text-white">
                             Téléphone <span className="text-red-600">*</span>
                           </Label>
                           <Input
-                            id="phone"
+                            id="livraison_phone"
                             type="tel"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            value={formData.livraison_phone}
+                            onChange={(e) => handleInputChange('livraison_phone', e.target.value)}
                             className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                             placeholder="+216 XX XXX XXX"
                             required
                           />
                         </div>
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="phone2" className="text-sm font-semibold text-gray-900 dark:text-white">
                           Téléphone 2 <span className="text-gray-400 text-xs">(optionnel)</span>
@@ -877,15 +765,6 @@ export default function CheckoutPage() {
                           placeholder="+216 XX XXX XXX"
                         />
                       </div>
-                    </div>
-
-                    {/* Address Section */}
-                    <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-2 pb-2">
-                        <Truck className="h-5 w-5 text-red-600" />
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de facturation</h3>
-                      </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="pays" className="text-sm font-semibold text-gray-900 dark:text-white">
                           Pays
@@ -893,51 +772,45 @@ export default function CheckoutPage() {
                         <Input
                           id="pays"
                           value={formData.pays}
-                          onChange={(e) => handleInputChange('pays', e.target.value)}
                           readOnly
                           className="h-12 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 cursor-not-allowed"
                         />
                       </div>
-
-                    {/* Address Selector */}
-                    <AddressSelector
-                      gouvernorat={gouvernorat}
-                      delegation={delegation}
-                      localite={localite}
-                      codePostal={codePostal}
-                      onGouvernoratChange={handleGouvernoratChange}
-                      onDelegationChange={handleDelegationChange}
-                      onLocaliteChange={handleLocaliteChange}
-                      required
-                    />
-
+                      <AddressSelector
+                        gouvernorat={gouvernorat}
+                        delegation={delegation}
+                        localite={localite}
+                        codePostal={codePostal}
+                        onGouvernoratChange={handleGouvernoratChange}
+                        onDelegationChange={handleDelegationChange}
+                        onLocaliteChange={handleLocaliteChange}
+                        required
+                      />
                       <div className="space-y-2">
-                        <Label htmlFor="adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <Label htmlFor="livraison_adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
                           Adresse ligne 1 <span className="text-red-600">*</span>
                         </Label>
                         <Input
-                          id="adresse1"
-                          value={formData.adresse1}
-                          onChange={(e) => handleInputChange('adresse1', e.target.value)}
+                          id="livraison_adresse1"
+                          value={formData.livraison_adresse1}
+                          onChange={(e) => handleInputChange('livraison_adresse1', e.target.value)}
                           className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                           placeholder="Rue, numéro, bâtiment..."
                           required
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <Label htmlFor="livraison_adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
                           Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
                         </Label>
                         <Input
-                          id="adresse2"
-                          value={formData.adresse2}
-                          onChange={(e) => handleInputChange('adresse2', e.target.value)}
+                          id="livraison_adresse2"
+                          value={formData.livraison_adresse2}
+                          onChange={(e) => handleInputChange('livraison_adresse2', e.target.value)}
                           className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
                           placeholder="Appartement, étage, etc."
                         />
                       </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="note" className="text-sm font-semibold text-gray-900 dark:text-white">
                           Notes de commande <span className="text-gray-400 text-xs">(optionnel)</span>
@@ -1089,135 +962,6 @@ export default function CheckoutPage() {
                           politique de confidentialité
                         </a>
                       </Label>
-                    </div>
-
-                    {/* Shipping Address */}
-                    <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-2 mb-6">
-                        <Truck className="h-5 w-5 text-red-600" />
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de livraison</h3>
-                      </div>
-                      
-                      <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-900/50 mb-6">
-                        <Checkbox
-                          id="sameAsBilling"
-                          checked={sameAsBilling}
-                          onCheckedChange={(checked) => setSameAsBilling(checked as boolean)}
-                          className="mt-1"
-                        />
-                        <Label htmlFor="sameAsBilling" className="font-semibold text-gray-900 dark:text-white cursor-pointer flex-1">
-                          Utiliser la même adresse pour la livraison
-                        </Label>
-                      </div>
-
-                      {!sameAsBilling && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="space-y-5 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-gray-200 dark:border-gray-700"
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                              <Label htmlFor="livraison_nom" className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Nom <span className="text-red-600">*</span>
-                              </Label>
-                              <Input
-                                id="livraison_nom"
-                                value={formData.livraison_nom}
-                                onChange={(e) => handleInputChange('livraison_nom', e.target.value)}
-                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                                placeholder="Nom du destinataire"
-                                required
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="livraison_prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Prénom <span className="text-red-600">*</span>
-                              </Label>
-                              <Input
-                                id="livraison_prenom"
-                                value={formData.livraison_prenom}
-                                onChange={(e) => handleInputChange('livraison_prenom', e.target.value)}
-                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                                placeholder="Prénom du destinataire"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                              <Label htmlFor="livraison_email" className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Email <span className="text-red-600">*</span>
-                              </Label>
-                              <Input
-                                id="livraison_email"
-                                type="email"
-                                value={formData.livraison_email}
-                                onChange={(e) => handleInputChange('livraison_email', e.target.value)}
-                                autoComplete="email"
-                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                                placeholder="email@example.com"
-                                required
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="livraison_phone" className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Téléphone <span className="text-red-600">*</span>
-                              </Label>
-                              <Input
-                                id="livraison_phone"
-                                type="tel"
-                                value={formData.livraison_phone}
-                                onChange={(e) => handleInputChange('livraison_phone', e.target.value)}
-                                className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                                placeholder="+216 XX XXX XXX"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          {/* Shipping Address Selector */}
-                          <AddressSelector
-                            gouvernorat={livraisonGouvernorat}
-                            delegation={livraisonDelegation}
-                            localite={livraisonLocalite}
-                            codePostal={livraisonCodePostal}
-                            onGouvernoratChange={handleLivraisonGouvernoratChange}
-                            onDelegationChange={handleLivraisonDelegationChange}
-                            onLocaliteChange={handleLivraisonLocaliteChange}
-                            label="Adresse de livraison"
-                          />
-
-                          <div className="space-y-2">
-                            <Label htmlFor="livraison_adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
-                              Adresse ligne 1 <span className="text-red-600">*</span>
-                            </Label>
-                            <Input
-                              id="livraison_adresse1"
-                              value={formData.livraison_adresse1}
-                              onChange={(e) => handleInputChange('livraison_adresse1', e.target.value)}
-                              className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                              placeholder="Rue, numéro, bâtiment..."
-                              required
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="livraison_adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
-                              Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
-                            </Label>
-                            <Input
-                              id="livraison_adresse2"
-                              value={formData.livraison_adresse2}
-                              onChange={(e) => handleInputChange('livraison_adresse2', e.target.value)}
-                              className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                              placeholder="Appartement, étage, etc."
-                            />
-                          </div>
-                        </motion.div>
-                      )}
                     </div>
 
                     <Button

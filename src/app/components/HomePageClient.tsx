@@ -112,12 +112,7 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
         </div>
         <CategoryGrid categories={accueil.categories || []} />
         
-        {/* Product sections – only when data comes from API (accueil) */}
-        {/* Ventes Flash: show only when there are valid flash products (promo + future expiry) */}
-        {flashSales.length > 0 && (
-          <VentesFlashSection products={flashSales as any} />
-        )}
-
+        {/* Product sections – order: Nouveaux Produits → Meilleurs Ventes → Ventes Flash */}
         {(accueil.new_product?.length ?? 0) > 0 && (
           <ProductSection
             id="products"
@@ -139,12 +134,18 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
           />
         )}
 
+        {flashSales.length > 0 && (
+          <VentesFlashSection products={flashSales as any} />
+        )}
+
         {(accueil.packs?.length ?? 0) > 0 && (
           <ProductSection
             id="packs"
             title="Nos Packs"
             subtitle="Économisez avec nos packs spéciaux"
             products={packs as any}
+            viewAllHref="/packs"
+            viewAllLabel="Voir tous les packs"
           />
         )}
         

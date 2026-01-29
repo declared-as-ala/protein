@@ -35,6 +35,8 @@ const SlideImage = memo(({
   isFirst: boolean;
   className?: string;
 }) => {
+  // Mobile: object-cover to fill gap; sm+: object-contain so full image visible on web
+  const imageClass = 'object-cover sm:object-contain';
   if (!isFirst) {
     // Lazy load non-first slides for faster initial load (quality 75 for mobile PageSpeed)
     return (
@@ -42,7 +44,7 @@ const SlideImage = memo(({
         src={src}
         alt={alt}
         fill
-        className={className || 'object-cover'}
+        className={className || imageClass}
         sizes="100vw"
         quality={75}
         loading="lazy"
@@ -58,7 +60,7 @@ const SlideImage = memo(({
       fill
       priority
       fetchPriority="high"
-      className={className || 'object-cover'}
+      className={className || imageClass}
       sizes="(max-width: 768px) 100vw, 100vw"
       quality={75}
     />
@@ -73,17 +75,36 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
   const slidesToUse = useMemo(() => {
     if (!slides || slides.length === 0) return fallbackSlides;
     
-    return slides
-      .filter((slide: any) => slide.image || slide.image) // Only slides with images
-      .sort((a: any, b: any) => (a.ordre || 0) - (b.ordre || 0)) // Sort by ordre
-      .map((slide: any) => ({
-        id: slide.id,
-        titre: slide.titre || 'Protéines Premium',
-        description: slide.description || 'Découvrez nos produits premium',
-        lien: slide.lien || '/shop',
-        image: slide.image ? getStorageUrl(slide.image) : '/hero/webp/hero1.webp', // Use getStorageUrl for API images
-      }));
+    const transformed = slides
+      .filter((slide: any) => {
+        // Check if slide exists and has an image (try multiple possible field names)
+        if (!slide) return false;
+        const hasImage = slide.image || slide.image_path || slide.cover || slide.url;
+        return !!hasImage;
+      })
+      .sort((a: any, b: any) => (a.ordre || a.order || 0) - (b.ordre || b.order || 0)) // Sort by ordre/order
+      .map((slide: any) => {
+        // Get image from various possible field names
+        const imagePath = slide.image || slide.image_path || slide.cover || slide.url || '';
+        return {
+          id: slide.id || Math.random(),
+          titre: slide.titre || slide.title || 'Protéines Premium',
+          description: slide.description || 'Découvrez nos produits premium',
+          lien: slide.lien || slide.link || slide.url || '/shop',
+          image: imagePath ? getStorageUrl(imagePath) : '/hero/webp/hero1.webp', // Use getStorageUrl for API images
+        };
+      });
+    
+    // Ensure we always have at least one slide
+    return transformed.length > 0 ? transformed : fallbackSlides;
   }, [slides]);
+
+  // Reset currentSlide if out of bounds
+  useEffect(() => {
+    if (currentSlide >= slidesToUse.length) {
+      setCurrentSlide(0);
+    }
+  }, [slidesToUse.length, currentSlide]);
 
   useEffect(() => {
     if (slidesToUse.length <= 1) return;
@@ -102,7 +123,18 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
     setCurrentSlide((prev) => (prev - 1 + slidesToUse.length) % slidesToUse.length);
   };
 
-  const currentSlideData = slidesToUse[currentSlide];
+  // Safety check: ensure currentSlideData exists and slidesToUse is not empty
+  if (!slidesToUse || slidesToUse.length === 0) {
+    return null; // Don't render if no slides
+  }
+
+  const currentSlideData = slidesToUse[currentSlide] || slidesToUse[0];
+  
+  // Final safety check
+  if (!currentSlideData || !currentSlideData.image) {
+    return null;
+  }
+
   const isFirstSlide = currentSlide === 0;
   // Photos 4 and 7 (indices 3, 6) should be wider
   const isWideSlide = currentSlide === 3 || currentSlide === 6;
@@ -152,12 +184,12 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
         className="absolute inset-0 transition-opacity duration-300 ease-in-out"
         style={{ willChange: 'opacity' }}
       >
-        {/* Background Image - Fills container edge to edge with proper aspect ratio */}
+        {/* Mobile: fill gap (object-cover); Web: full image visible (object-contain) */}
         <SlideImage
           src={currentSlideData.image}
           alt={currentSlideData.titre}
           isFirst={isFirstSlide}
-          className="object-cover"
+          className="object-cover sm:object-contain"
         />
         
         {/* Gradient Overlay for better text readability */}

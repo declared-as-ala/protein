@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Button } from '@/app/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -44,9 +45,11 @@ export function PromoBanner() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 h-14 text-lg group">
-                Voir les Offres
-                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 h-14 text-lg group" asChild>
+                <Link href="/offres">
+                  Voir les Offres
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-8 h-14 text-lg">
                 En Savoir Plus

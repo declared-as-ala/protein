@@ -10,6 +10,7 @@ import type { Product as ApiProduct } from '@/types';
 import { useCart } from '@/app/contexts/CartContext';
 import { getStorageUrl } from '@/services/api';
 import { toast } from 'sonner';
+import { hasValidPromo } from '@/util/productPrice';
 
 // Support both old Product type and new API Product type
 type Product = ApiProduct | {
@@ -49,16 +50,16 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Memoize computed values to prevent unnecessary recalculations
+  // Memoize computed values – single source of truth: API prix, promo, promo_expiration_date (null = no expiry)
   const productData = useMemo(() => {
     const name = (product as any).name || product.designation_fr || '';
     const slug = product.slug || '';
     const image = (product as any).image || (product.cover ? getStorageUrl(product.cover) : '');
-    // Old/original price: prefer prix (API) so ventes flash show correct crossed-out price
     const oldPrice = product.prix ?? (product as any).price ?? 0;
-    const promoPrice = product.promo && product.promo_expiration_date ? product.promo : null;
+    const validPromo = hasValidPromo(product as any);
+    const promoPrice = validPromo && product.promo != null ? product.promo : null;
     const newPrice = promoPrice ?? oldPrice;
-    const discount = promoPrice && oldPrice && oldPrice > 0 ? Math.round(((oldPrice - promoPrice) / oldPrice) * 100) : 0;
+    const discount = promoPrice != null && oldPrice > 0 ? Math.round(((oldPrice - promoPrice) / oldPrice) * 100) : 0;
     const isNew = product.new_product === 1;
     const isBestSeller = product.best_seller === 1;
     const rating = product.note || 0;
@@ -116,12 +117,12 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
             {badgeText}
           </Badge>
         )}
-        {productData.isInStock && !showBadge && productData.isNew && (
+        {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isNew && (
           <Badge className="bg-blue-700 text-white hover:bg-blue-800 font-semibold border-0">
             New
           </Badge>
         )}
-        {productData.isInStock && !showBadge && productData.isBestSeller && (
+        {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isBestSeller && (
           <Badge className="bg-yellow-700 text-white hover:bg-yellow-800 font-semibold border-0">
             Top Vendu
           </Badge>
@@ -183,18 +184,6 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
             {productData.name}
           </h3>
         </Link>
-
-        {/* Nutrition Highlights - Premium Feature - Hidden on mobile */}
-        <div className="hidden sm:flex items-center gap-3 mb-3 text-xs">
-          <div className="flex items-center gap-1 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded-full">
-            <span className="font-semibold text-red-600 dark:text-red-400">25g</span>
-            <span className="text-gray-600 dark:text-gray-400">protéine</span>
-          </div>
-          <div className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 px-2 py-1 rounded-full">
-            <span className="font-semibold text-orange-600 dark:text-orange-400">120</span>
-            <span className="text-gray-600 dark:text-gray-400">cal</span>
-          </div>
-        </div>
 
         {/* Rating & Reviews - Enhanced display */}
         {productData.rating > 0 && (

@@ -187,7 +187,7 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
     >
       <Link
         href={`/shop?brand=${brand.id}`}
-        className="block bg-white dark:bg-gray-800 rounded-2xl p-6 h-40 flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 hover:shadow-xl transition-all duration-300"
+        className="block bg-white dark:bg-gray-800 rounded-2xl p-6 h-48 flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500 hover:shadow-xl transition-all duration-300"
       >
         {logoUrl && !imageError ? (
           <div className="relative w-full h-full">
@@ -195,8 +195,8 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
               src={logoUrl}
               alt={brand.designation_fr || brand.alt_cover || 'Brand logo'}
               fill
-              className="object-contain p-2 group-hover:scale-110 transition-transform duration-300"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              className="object-contain p-3 group-hover:scale-110 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
               loading="lazy"
               unoptimized
               onError={() => {
@@ -237,14 +237,14 @@ function BrandListItem({ brand, index }: { brand: Brand; index: number }) {
       >
         <div className="flex items-center gap-6">
           {/* Brand Logo */}
-          <div className="relative w-24 h-24 flex-shrink-0 bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+          <div className="relative w-32 h-32 flex-shrink-0 bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
             {logoUrl && !imageError ? (
               <Image
                 src={logoUrl}
                 alt={brand.designation_fr || brand.alt_cover || 'Brand logo'}
                 fill
                 className="object-contain p-3 group-hover:scale-110 transition-transform duration-300"
-                sizes="96px"
+                sizes="128px"
                 loading="lazy"
                 unoptimized
                 onError={() => {

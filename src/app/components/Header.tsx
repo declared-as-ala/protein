@@ -76,13 +76,13 @@ export function Header() {
               </Link>
             </motion.div>
 
-            {/* Right Actions: Profile, Theme, Cart, Mobile Menu (all visible on mobile) */}
-            <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
+            {/* Right Actions: smaller on mobile so toggle fits; Profile, Theme, Cart, Menu */}
+            <div className="flex items-center gap-0.5 sm:gap-1 lg:gap-3 flex-shrink-0">
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px] relative z-50 shrink-0">
-                      <User className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="flex hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg sm:rounded-xl h-9 w-9 min-h-[40px] min-w-[40px] sm:h-10 sm:w-10 sm:min-h-[44px] sm:min-w-[44px] relative z-50 shrink-0">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
@@ -116,7 +116,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" className="flex shrink-0 h-10 min-h-[44px] px-2 sm:px-3 lg:px-4 text-xs sm:text-sm lg:text-base font-semibold" asChild>
+                <Button variant="ghost" size="sm" className="flex shrink-0 h-9 min-h-[40px] sm:h-10 sm:min-h-[44px] px-1.5 sm:px-3 lg:px-4 text-[11px] sm:text-sm lg:text-base font-semibold" asChild>
                   <Link href="/login">Connexion</Link>
                 </Button>
               )}
@@ -125,26 +125,26 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10 w-10 min-h-[44px] min-w-[44px]"
+                className="flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg sm:rounded-xl h-9 w-9 min-h-[40px] min-w-[40px] sm:h-10 sm:w-10 sm:min-h-[44px] sm:min-w-[44px]"
                 aria-label="Changer le thème"
               >
-                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
               
               <motion.div className="shrink-0" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px]"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg sm:rounded-xl transition-colors h-9 w-9 min-h-[40px] min-w-[40px] sm:h-10 sm:w-10 sm:min-h-[44px] sm:min-w-[44px]"
                   onClick={() => setCartDrawerOpen(true)}
                   aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}
                 >
-                  <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                   {cartItemsCount > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
+                      className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-[10px] sm:text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold shadow-lg"
                       aria-label={`${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''} dans le panier`}
                     >
                       {cartItemsCount}
@@ -153,16 +153,16 @@ export function Header() {
                 </Button>
               </motion.div>
 
-              {/* Mobile: hamburger always visible (44px touch target, border for clarity) */}
+              {/* Mobile: hamburger always visible; 44px touch target so it stays tappable */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl min-h-[44px] min-w-[44px] h-11 w-11 border border-gray-200 dark:border-gray-700"
+                className="lg:hidden flex shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg sm:rounded-xl min-h-[44px] min-w-[44px] h-11 w-11 border border-gray-200 dark:border-gray-700"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                 aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
               </Button>
             </div>
           </div>

@@ -112,7 +112,7 @@ export default function RootLayout({
       postalCode: '4000',
       addressCountry: 'TN',
     },
-    telephone: '+21673200500',
+    telephone: '+21627612500',
     email: 'contact@protein.tn',
     sameAs: [
       'https://www.facebook.com/sobitass/',
@@ -128,7 +128,7 @@ export default function RootLayout({
     name: 'SOBITAS – Protéines & Compléments Alimentaires Tunisie',
     image: `${baseUrl}/icon.png`,
     url: baseUrl,
-    telephone: '+21673200500',
+    telephone: '+21627612500',
     email: 'contact@protein.tn',
     address: {
       '@type': 'PostalAddress',
@@ -168,7 +168,7 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               {children}
-              <Toaster position="top-right" richColors />
+              <Toaster position="top-center" richColors className="sonner-toaster" />
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>

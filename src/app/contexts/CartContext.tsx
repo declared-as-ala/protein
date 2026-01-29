@@ -28,7 +28,7 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getEffectivePrice: (product: Product) => number;
-  /** Drawer open state: desktop only opens on add-to-cart; mobile never opens (just cart icon count). */
+  /** Drawer open state: opens on add-to-cart (desktop and mobile). */
   cartDrawerOpen: boolean;
   setCartDrawerOpen: (open: boolean) => void;
 }
@@ -87,10 +87,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return [...prevItems, { product, quantity }];
       }
     });
-    // Open cart drawer on desktop only (not mobile – user wants only cart icon count on mobile)
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      setCartDrawerOpen(true);
-    }
+    // Open cart drawer on add-to-cart (desktop and mobile)
+    setCartDrawerOpen(true);
   };
 
   const removeFromCart = (productId: number) => {

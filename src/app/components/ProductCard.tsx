@@ -30,25 +30,19 @@ type Product = ApiProduct | {
   promo_expiration_date?: string;
   note?: number;
 };
-import { useState, useEffect, useMemo, memo, useCallback } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 
 interface ProductCardProps {
   product: Product;
   showBadge?: boolean;
   badgeText?: string;
+  /** Compact variant for shop listing: image + name (2 lines) + price + one CTA, no rating, minimal badges */
+  variant?: 'default' | 'compact';
 }
 
-export const ProductCard = memo(function ProductCard({ product, showBadge, badgeText }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, showBadge, badgeText, variant = 'default' }: ProductCardProps) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Memoize computed values – single source of truth: API prix, promo, promo_expiration_date (null = no expiry)
   const productData = useMemo(() => {
@@ -98,39 +92,45 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
     setTimeout(() => setIsAdding(false), 500);
   }, [productData.isInStock, addToCart, product]);
 
+  const isCompact = variant === 'compact';
+
   const cardContent = (
     <>
-      {/* Badges - Improved contrast for accessibility (WCAG AA) */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+      {/* Badges - compact: only rupture + discount; default: all */}
+      <div className={`absolute z-10 flex flex-col gap-1 ${isCompact ? 'top-1.5 left-1.5' : 'top-3 left-3 gap-2'}`}>
         {!productData.isInStock && (
-          <Badge className="bg-gray-900 text-white hover:bg-gray-800 font-semibold border-0">
-            Rupture de stock
+          <Badge className={`bg-gray-900 text-white hover:bg-gray-800 font-semibold border-0 ${isCompact ? 'text-[10px] px-1.5 py-0' : ''}`}>
+            Rupture
           </Badge>
         )}
         {productData.isInStock && productData.discount > 0 && (
-          <Badge className="bg-red-700 text-white hover:bg-red-800 font-semibold border-0">
+          <Badge className={`bg-red-700 text-white hover:bg-red-800 font-semibold border-0 ${isCompact ? 'text-[10px] px-1.5 py-0' : ''}`}>
             -{productData.discount}%
           </Badge>
         )}
-        {productData.isInStock && showBadge && badgeText && (
-          <Badge className="bg-green-700 text-white hover:bg-green-800 font-semibold border-0">
-            {badgeText}
-          </Badge>
-        )}
-        {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isNew && (
-          <Badge className="bg-blue-700 text-white hover:bg-blue-800 font-semibold border-0">
-            New
-          </Badge>
-        )}
-        {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isBestSeller && (
-          <Badge className="bg-yellow-700 text-white hover:bg-yellow-800 font-semibold border-0">
-            Top Vendu
-          </Badge>
+        {!isCompact && (
+          <>
+            {productData.isInStock && showBadge && badgeText && (
+              <Badge className="bg-green-700 text-white hover:bg-green-800 font-semibold border-0">
+                {badgeText}
+              </Badge>
+            )}
+            {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isNew && (
+              <Badge className="bg-blue-700 text-white hover:bg-blue-800 font-semibold border-0">
+                New
+              </Badge>
+            )}
+            {productData.isInStock && productData.promoPrice == null && !showBadge && productData.isBestSeller && (
+              <Badge className="bg-yellow-700 text-white hover:bg-yellow-800 font-semibold border-0">
+                Top Vendu
+              </Badge>
+            )}
+          </>
         )}
       </div>
 
-      {/* Image Container - Fixed aspect ratio for CLS */}
-      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden" style={{ minHeight: '200px' }}>
+      {/* Image Container - 1:1 aspect, no fixed min-height on compact */}
+      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden" style={isCompact ? undefined : { minHeight: '200px' }}>
         <Link href={`/products/${productData.slug || product.id}`} aria-label={`Voir ${productData.name}`}>
           {productData.image ? (
             <Image
@@ -138,7 +138,7 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
               alt={productData.name}
               width={400}
               height={400}
-              className="w-full h-full object-contain p-2 sm:p-4 sm:group-hover:scale-110 transition-transform duration-300"
+              className={`w-full h-full object-contain transition-transform duration-300 ${isCompact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-4'} [@media(hover:hover)]:sm:group-hover:scale-110`}
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               quality={70}
@@ -161,8 +161,11 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           )}
         </Link>
 
-        {/* Quick Add to Cart - Shows on hover */}
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Quick Add to Cart - Desktop only: show on hover (hover-capable devices) */}
+        <div
+          className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent hidden opacity-0 transition-opacity duration-300 [@media(hover:hover)]:block [@media(hover:hover)]:group-hover:opacity-100"
+          aria-hidden="true"
+        >
           <Button
             size="sm"
             className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white`}
@@ -177,16 +180,16 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
       </div>
 
       {/* Content */}
-      <div className="p-2 sm:p-4">
-        {/* Product Name */}
+      <div className={isCompact ? 'p-2' : 'p-2 sm:p-4'}>
+        {/* Product Name - always 2 lines max */}
         <Link href={`/products/${productData.slug || product.id}`} className="block mb-1 sm:mb-2">
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors min-h-[2.5rem] sm:min-h-0">
+          <h3 className={`font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors ${isCompact ? 'text-[11px] sm:text-xs min-h-[2rem]' : 'text-xs sm:text-sm min-h-[2.5rem] sm:min-h-0'}`}>
             {productData.name}
           </h3>
         </Link>
 
-        {/* Rating & Reviews - Enhanced display */}
-        {productData.rating > 0 && (
+        {/* Rating & Reviews - hidden in compact */}
+        {!isCompact && productData.rating > 0 && (
           <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3" aria-label={`Note: ${productData.rating.toFixed(1)} sur 5${productData.reviewCount > 0 ? `, ${productData.reviewCount} avis` : ''}`}>
             <div className="flex items-center gap-0.5 sm:gap-1">
               {[...Array(5)].map((_, i) => (
@@ -212,43 +215,43 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           </div>
         )}
 
-        {/* Price – ventes flash / promo: old price شطب (strikethrough), promo prominent */}
-        <div className="flex flex-wrap items-baseline gap-2 mb-2 sm:mb-3">
+        {/* Price – compact: smaller text */}
+        <div className={`flex flex-wrap items-baseline gap-1 sm:gap-2 ${isCompact ? 'mb-2' : 'mb-2 sm:mb-3'}`}>
           {productData.promoPrice != null && productData.oldPrice !== productData.newPrice ? (
             <>
-              <span className="text-base sm:text-xl font-bold text-red-600 dark:text-red-400 tabular-nums">
+              <span className={`font-bold text-red-600 dark:text-red-400 tabular-nums ${isCompact ? 'text-sm' : 'text-base sm:text-xl'}`}>
                 {productData.newPrice} DT
               </span>
               <span
-                className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through tabular-nums"
+                className={`text-gray-500 dark:text-gray-400 line-through tabular-nums ${isCompact ? 'text-[10px]' : 'text-xs sm:text-sm'}`}
                 style={{ textDecorationThickness: '1.5px' }}
-                aria-label={`Prix barré (شطب): ${productData.oldPrice} DT`}
+                aria-label={`Prix barré: ${productData.oldPrice} DT`}
               >
                 {productData.oldPrice} DT
               </span>
-              {productData.discount > 0 && (
+              {!isCompact && productData.discount > 0 && (
                 <span className="rounded-md bg-red-100 dark:bg-red-950/50 px-1.5 py-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
                   -{productData.discount}%
                 </span>
               )}
             </>
           ) : (
-            <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white tabular-nums">
+            <span className={`font-bold text-gray-900 dark:text-white tabular-nums ${isCompact ? 'text-sm' : 'text-sm sm:text-lg'}`}>
               {productData.newPrice || productData.oldPrice} DT
             </span>
           )}
         </div>
 
-        {/* Add to Cart Button - Always visible on mobile */}
+        {/* Add to Cart - one CTA; compact: always show on mobile for touch, min 44px */}
         <Button
           size="sm"
-          className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white md:hidden`}
+          className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white hidden [@media(hover:none)]:inline-flex ${isCompact ? 'text-xs' : ''}`}
           onClick={handleAddToCart}
           disabled={isAdding || !productData.isInStock}
           aria-label={`Ajouter ${productData.name} au panier`}
         >
-          <ShoppingCart className="h-4 w-4 mr-2" aria-hidden="true" />
-          {!productData.isInStock ? 'Rupture de stock' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}
+          <ShoppingCart className={`shrink-0 mr-1.5 ${isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4 mr-2'}`} aria-hidden="true" />
+          {!productData.isInStock ? 'Rupture' : isAdding ? 'Ajouté !' : isCompact ? 'Ajouter' : 'Ajouter au panier'}
         </Button>
       </div>
 
@@ -257,11 +260,9 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
     </>
   );
 
-  const className = "group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-500";
-
-  if (isMobile) {
-    return <article className={className}>{cardContent}</article>;
-  }
+  const className = isCompact
+    ? "group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:border-red-500 [@media(hover:hover)]:dark:hover:border-red-500"
+    : "group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 [@media(hover:hover)]:hover:shadow-2xl [@media(hover:hover)]:hover:border-red-500 [@media(hover:hover)]:dark:hover:border-red-500";
 
   return (
     <motion.article

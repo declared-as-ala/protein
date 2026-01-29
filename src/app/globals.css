@@ -136,3 +136,14 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Toast: top-center so it doesn't cover cart; compact on mobile */
+.sonner-toaster {
+  --width: 22rem;
+}
+@media (max-width: 640px) {
+  .sonner-toaster [data-sonner-toast] {
+    max-width: min(90vw, 22rem) !important;
+    width: auto !important;
+  }
+}

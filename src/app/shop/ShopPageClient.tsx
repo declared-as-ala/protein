@@ -10,7 +10,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Slider } from '@/app/components/ui/slider';
 import { Checkbox } from '@/app/components/ui/checkbox';
-import { X, Filter, SlidersHorizontal, Search } from 'lucide-react';
+import { Filter, Search } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/app/components/ui/sheet';
 import { motion } from 'motion/react';
 import { ScrollToTop } from '@/app/components/ScrollToTop';
 import { Pagination } from '@/app/components/ui/pagination';
@@ -39,7 +40,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<Product[]>(productsData.products || []);
   const [isSearching, setIsSearching] = useState(false);
-  const [inStockOnly, setInStockOnly] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
   
@@ -399,7 +400,7 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-12">
         {/* Brand description – shown when filtering by brand (e.g. /shop?brand=1) */}
         {currentBrand && (
           <motion.div
@@ -434,16 +435,16 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
           </motion.div>
         )}
 
-        {/* Page Header */}
+        {/* Page Header - compact on mobile */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+          className="mb-4 sm:mb-10"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
             {currentBrand ? `Produits ${currentBrand.designation_fr}` : 'Tous nos produits'}
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">
             {isSearching ? (
               'Recherche en cours...'
             ) : totalPages > 1 ? (
@@ -454,141 +455,123 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
           </p>
         </motion.div>
 
-        {/* Search and Filter Toggle */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        {/* Search + Sticky Filter (mobile: bottom sheet) */}
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex-1 relative min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" aria-hidden="true" />
             <Input
               type="search"
-              placeholder="Rechercher un produit..."
+              placeholder="Rechercher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10"
+              className="w-full pl-9 sm:pl-10 min-h-[44px]"
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden"
-          >
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
-            Filtres
-          </Button>
-        </div>
-
-        {/* Mobile Filters */}
-        {showFilters && (
-          <div className="md:hidden mb-6">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-lg">Filtres</h2>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-sm"
-                  >
+          {/* Mobile: Filter/Sort opens bottom sheet */}
+          <Sheet open={showFilters} onOpenChange={setShowFilters}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="md:hidden min-h-[44px] min-w-[44px] flex-shrink-0"
+                aria-label="Ouvrir les filtres"
+              >
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Filtres</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Filtres et tri</SheetTitle>
+              </SheetHeader>
+              <div className="p-4 pb-8 space-y-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold text-lg">Filtres</h2>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="text-sm">
                     Réinitialiser
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFilters(false)}
-                    className="text-sm"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
                 </div>
-              </div>
 
-              {/* In Stock Filter - Moved to top for visibility */}
-              <div>
-                <h3 className="font-medium mb-3">Disponibilité</h3>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="mobile-in-stock"
-                    checked={inStockOnly}
-                    onCheckedChange={(checked) => setInStockOnly(checked === true)}
+                {/* In Stock */}
+                <div>
+                  <h3 className="font-medium mb-2 text-sm">Disponibilité</h3>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="mobile-in-stock"
+                      checked={inStockOnly}
+                      onCheckedChange={(checked) => setInStockOnly(checked === true)}
+                    />
+                    <label htmlFor="mobile-in-stock" className="text-sm cursor-pointer flex-1">
+                      En stock uniquement
+                    </label>
+                  </div>
+                </div>
+
+                {/* Categories */}
+                {categories.length > 0 && (
+                  <div>
+                    <h3 className="font-medium mb-2 text-sm">Catégories</h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {categories.map(category => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`mobile-cat-${category.id}`}
+                            checked={selectedCategories.includes(category.slug)}
+                            onCheckedChange={() => toggleCategory(category.slug)}
+                          />
+                          <label htmlFor={`mobile-cat-${category.id}`} className="text-sm cursor-pointer flex-1">
+                            {category.designation_fr}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Brands */}
+                {brands.length > 0 && (
+                  <div>
+                    <h3 className="font-medium mb-2 text-sm">Marques</h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {brands.map(brand => (
+                        <div key={brand.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`mobile-brand-${brand.id}`}
+                            checked={selectedBrands.includes(brand.id)}
+                            onCheckedChange={() => toggleBrand(brand.id)}
+                          />
+                          <label htmlFor={`mobile-brand-${brand.id}`} className="text-sm cursor-pointer flex-1">
+                            {brand.designation_fr}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price Range */}
+                <div>
+                  <h3 className="font-medium mb-2 text-sm">Prix: {priceRange[0]} – {priceRange[1]} DT</h3>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={(value) => setPriceRange(value as [number, number])}
+                    min={priceBounds.min}
+                    max={priceBounds.max}
+                    step={10}
+                    className="w-full"
                   />
-                  <label
-                    htmlFor="mobile-in-stock"
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    En stock uniquement
-                  </label>
-                </div>
-              </div>
-
-              {/* Categories */}
-              {categories.length > 0 && (
-                <div>
-                  <h3 className="font-medium mb-3">Catégories</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {categories.map(category => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`mobile-cat-${category.id}`}
-                          checked={selectedCategories.includes(category.slug)}
-                          onCheckedChange={() => toggleCategory(category.slug)}
-                        />
-                        <label
-                          htmlFor={`mobile-cat-${category.id}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {category.designation_fr}
-                        </label>
-                      </div>
-                    ))}
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>{priceBounds.min} DT</span>
+                    <span>{priceBounds.max} DT</span>
                   </div>
                 </div>
-              )}
 
-              {/* Brands */}
-              {brands.length > 0 && (
-                <div>
-                  <h3 className="font-medium mb-3">Marques</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {brands.map(brand => (
-                      <div key={brand.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`mobile-brand-${brand.id}`}
-                          checked={selectedBrands.includes(brand.id)}
-                          onCheckedChange={() => toggleBrand(brand.id)}
-                        />
-                        <label
-                          htmlFor={`mobile-brand-${brand.id}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {brand.designation_fr}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Price Range */}
-              <div>
-                <h3 className="font-medium mb-3">
-                  Prix: {priceRange[0]} DT - {priceRange[1]} DT
-                </h3>
-                <Slider
-                  value={priceRange}
-                  onValueChange={(value) => setPriceRange(value as [number, number])}
-                  min={priceBounds.min}
-                  max={priceBounds.max}
-                  step={10}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-2">
-                  <span>{priceBounds.min} DT</span>
-                  <span>{priceBounds.max} DT</span>
-                </div>
+                <Button className="w-full min-h-[44px]" onClick={() => setShowFilters(false)}>
+                  Voir les produits
+                </Button>
               </div>
-            </div>
-          </div>
-        )}
+            </SheetContent>
+          </Sheet>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Desktop Sidebar Filters */}
@@ -720,11 +703,12 @@ function ShopContent({ productsData, categories, brands }: ShopPageClientProps) 
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                   {paginatedProducts.map(product => (
                     <ProductCard
                       key={product.id}
                       product={product}
+                      variant="compact"
                     />
                   ))}
                 </div>

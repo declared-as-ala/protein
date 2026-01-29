@@ -35,8 +35,8 @@ const SlideImage = memo(({
   isFirst: boolean;
   className?: string;
 }) => {
-  // Mobile: object-cover to fill gap; sm+: object-contain so full image visible on web
-  const imageClass = 'object-cover sm:object-contain';
+  // Mobile: cover + center (no vertical gap). sm+: contain for full image.
+  const imageClass = 'object-cover object-center sm:object-contain';
   if (!isFirst) {
     // Lazy load non-first slides for faster initial load (quality 75 for mobile PageSpeed)
     return (
@@ -169,11 +169,7 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
 
   return (
     <section 
-      className="relative w-full overflow-hidden bg-gray-900 h-[75vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh]" 
-      style={{ 
-        aspectRatio: '12/6',
-        minHeight: '500px', // Ensure minimum height on all devices
-      }}
+      className="relative w-full overflow-hidden bg-gray-900 min-h-[100dvh] h-[100dvh] sm:h-[65vh] sm:min-h-0 md:h-[75vh] md:min-h-[380px] lg:h-[85vh] xl:h-[90vh]"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -184,12 +180,12 @@ export const HeroSlider = memo(function HeroSlider({ slides }: HeroSliderProps) 
         className="absolute inset-0 transition-opacity duration-300 ease-in-out"
         style={{ willChange: 'opacity' }}
       >
-        {/* Mobile: fill gap (object-cover); Web: full image visible (object-contain) */}
+        {/* Mobile: cover + centered (no letterboxing). Tablet+: contain for full image. */}
         <SlideImage
           src={currentSlideData.image}
           alt={currentSlideData.titre}
           isFirst={isFirstSlide}
-          className="object-cover sm:object-contain"
+          className="object-cover object-center sm:object-contain"
         />
         
         {/* Gradient Overlay for better text readability */}

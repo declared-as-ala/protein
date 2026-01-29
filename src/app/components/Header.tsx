@@ -36,9 +36,9 @@ export function Header() {
       <div className="bg-gradient-to-r from-gray-900 to-black text-white py-2.5 px-4 border-b border-gray-800/50">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-sm sm:text-base">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
-            <a href="tel:+21673200500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
+            <a href="tel:+21627612500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 27 612 500">
               <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" aria-hidden="true" />
-              <span>+216 73 200 500</span>
+              <span>+216 27 612 500</span>
             </a>
             <span className="hidden sm:inline text-gray-500" aria-hidden="true">|</span>
             <a href="tel:+21627612500" className="flex items-center gap-2 hover:text-red-500 transition-colors" aria-label="Appeler au +216 27 612 500">

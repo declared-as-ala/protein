@@ -19,6 +19,8 @@ import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { AddressSelector } from '@/app/components/AddressSelector';
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/app/components/ui/sheet';
+import { ChevronDown, ChevronUp, Phone, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 const FREE_SHIPPING_THRESHOLD = 300;
@@ -33,6 +35,8 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod');
   const [orderData, setOrderData] = useState<{ order: Order; orderDetails: any[] } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   
   // Single address (livraison) selector state
   const [gouvernorat, setGouvernorat] = useState('');
@@ -383,27 +387,25 @@ export default function CheckoutPage() {
     const details = orderData.orderDetails;
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+      <div className="min-h-screen bg-[#F7F7F8] dark:bg-gray-950">
         <Header />
         
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Panier</span>
-              </div>
-              <div className="flex-1 h-0.5 bg-red-600 mx-4"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">2</div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Livraison et Paiement</span>
-              </div>
-              <div className="flex-1 h-0.5 bg-red-600 mx-4"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">3</div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white font-semibold">Confirmation</span>
-              </div>
+        <main className="max-w-[1160px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 lg:hidden mb-4">Étape 3 sur 3 — Confirmation</p>
+          <div className="hidden lg:flex items-center gap-2 mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-500 flex items-center justify-center text-sm font-semibold">1</div>
+              <span className="text-sm font-medium text-gray-500">Panier</span>
+            </div>
+            <div className="flex-1 h-0.5 bg-red-600 mx-2 max-w-[80px]" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-500 flex items-center justify-center text-sm font-semibold">2</div>
+              <span className="text-sm font-medium text-gray-500">Livraison & Paiement</span>
+            </div>
+            <div className="flex-1 h-0.5 bg-red-600 mx-2 max-w-[80px]" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">Confirmation</span>
             </div>
           </div>
 
@@ -605,48 +607,29 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-[#F7F7F8] dark:bg-gray-950">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
+      <main className="max-w-[1160px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 pb-28 lg:pb-12">
+        {/* Progress: mobile = Étape 2/3, desktop = full stepper */}
+        <div className="mb-6 lg:mb-8">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 lg:hidden mb-4">
+            Étape 2 sur 3 — Livraison & Paiement
+          </p>
+          <div className="hidden lg:flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                currentStep >= 1 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                1
-              </div>
-              <span className={`text-sm font-medium ${
-                currentStep >= 1 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
-              }`}>Panier</span>
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-500 flex items-center justify-center text-sm font-semibold">1</div>
+              <span className="text-sm font-medium text-gray-500">Panier</span>
             </div>
-            <div className={`flex-1 h-0.5 mx-4 ${
-              currentStep >= 2 ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-700'
-            }`}></div>
+            <div className="flex-1 h-0.5 bg-red-600 mx-2 max-w-[80px]" />
             <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                currentStep >= 2 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                2
-              </div>
-              <span className={`text-sm font-medium ${
-                currentStep >= 2 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
-              }`}>Livraison et Paiement</span>
+              <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">Livraison & Paiement</span>
             </div>
-            <div className={`flex-1 h-0.5 mx-4 ${
-              currentStep >= 3 ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-700'
-            }`}></div>
+            <div className="flex-1 h-0.5 bg-gray-300 dark:bg-gray-700 mx-2 max-w-[80px]" />
             <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                currentStep >= 3 ? 'bg-red-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                3
-              </div>
-              <span className={`text-sm font-medium ${
-                currentStep >= 3 ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'
-              }`}>Confirmation</span>
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-500 flex items-center justify-center text-sm font-semibold">3</div>
+              <span className="text-sm font-medium text-gray-500">Confirmation</span>
             </div>
           </div>
         </div>
@@ -668,62 +651,55 @@ export default function CheckoutPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Checkout Form */}
+          {/* Checkout Form - single column on mobile */}
           <div className="lg:col-span-2">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="shadow-xl border-2 border-gray-200 dark:border-gray-800">
-                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-gray-200 dark:border-gray-800">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-600 rounded-lg">
-                      <Truck className="h-5 w-5 text-white" />
-                    </div>
-                    <CardTitle className="text-2xl">Adresse de livraison</CardTitle>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Remplissez votre adresse de livraison pour finaliser votre commande
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+              <Card className="bg-white dark:bg-gray-900 border-0 shadow-[0_4px_16px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <CardTitle className="text-[clamp(1rem,2.5vw,1.125rem)] font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-red-600" aria-hidden="true" />
+                    Adresse de livraison
+                  </CardTitle>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">
+                    Remplissez les champs pour finaliser votre commande
                   </p>
                 </CardHeader>
-                <CardContent className="p-6 sm:p-8">
-                  <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Single address form */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-800">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Informations et adresse</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label htmlFor="livraison_nom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
+                    {/* Contact */}
+                    <div className="space-y-4">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white">Contact</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="livraison_nom" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                             Nom <span className="text-red-600">*</span>
                           </Label>
                           <Input
                             id="livraison_nom"
                             value={formData.livraison_nom}
                             onChange={(e) => handleInputChange('livraison_nom', e.target.value)}
-                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            className="min-h-[48px] sm:min-h-[52px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
                             placeholder="Votre nom"
                             required
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="livraison_prenom" className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="livraison_prenom" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                             Prénom <span className="text-red-600">*</span>
                           </Label>
                           <Input
                             id="livraison_prenom"
                             value={formData.livraison_prenom}
                             onChange={(e) => handleInputChange('livraison_prenom', e.target.value)}
-                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            className="min-h-[48px] sm:min-h-[52px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
                             placeholder="Votre prénom"
                             required
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label htmlFor="livraison_email" className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="livraison_email" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                             Email <span className="text-red-600">*</span>
                           </Label>
                           <Input
@@ -732,13 +708,14 @@ export default function CheckoutPage() {
                             value={formData.livraison_email}
                             onChange={(e) => handleInputChange('livraison_email', e.target.value)}
                             autoComplete="email"
-                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            inputMode="email"
+                            className="min-h-[48px] sm:min-h-[52px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
                             placeholder="votre@email.com"
                             required
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="livraison_phone" className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="livraison_phone" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                             Téléphone <span className="text-red-600">*</span>
                           </Label>
                           <Input
@@ -746,36 +723,47 @@ export default function CheckoutPage() {
                             type="tel"
                             value={formData.livraison_phone}
                             onChange={(e) => handleInputChange('livraison_phone', e.target.value)}
-                            className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                            inputMode="tel"
+                            autoComplete="tel"
+                            className="min-h-[48px] sm:min-h-[52px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
                             placeholder="+216 XX XXX XXX"
                             required
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone2" className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Téléphone 2 <span className="text-gray-400 text-xs">(optionnel)</span>
-                        </Label>
-                        <Input
-                          id="phone2"
-                          type="tel"
-                          value={formData.phone2}
-                          onChange={(e) => handleInputChange('phone2', e.target.value)}
-                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                          placeholder="+216 XX XXX XXX"
-                        />
+                      {showOptionalFields && (
+                        <div className="space-y-1.5">
+                          <Label htmlFor="phone2" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
+                            Téléphone 2 <span className="text-gray-400 text-xs">(optionnel)</span>
+                          </Label>
+                          <Input
+                            id="phone2"
+                            type="tel"
+                            inputMode="tel"
+                            value={formData.phone2}
+                            onChange={(e) => handleInputChange('phone2', e.target.value)}
+                            className="min-h-[48px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
+                            placeholder="+216 XX XXX XXX"
+                          />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowOptionalFields(!showOptionalFields)}
+                        className="text-[13px] font-medium text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+                      >
+                        {showOptionalFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        {showOptionalFields ? 'Masquer les détails optionnels' : '+ Ajouter plus de détails'}
+                      </button>
+                      <div className="hidden">
+                        <Label htmlFor="pays">Pays</Label>
+                        <Input id="pays" value={formData.pays} readOnly className="sr-only" />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pays" className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Pays
-                        </Label>
-                        <Input
-                          id="pays"
-                          value={formData.pays}
-                          readOnly
-                          className="h-12 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 cursor-not-allowed"
-                        />
                       </div>
+
+                    {/* Adresse */}
+                    <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white">Adresse</h3>
                       <AddressSelector
                         gouvernorat={gouvernorat}
                         delegation={delegation}
@@ -786,63 +774,64 @@ export default function CheckoutPage() {
                         onLocaliteChange={handleLocaliteChange}
                         required
                       />
-                      <div className="space-y-2">
-                        <Label htmlFor="livraison_adresse1" className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="livraison_adresse1" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                           Adresse ligne 1 <span className="text-red-600">*</span>
                         </Label>
                         <Input
                           id="livraison_adresse1"
                           value={formData.livraison_adresse1}
                           onChange={(e) => handleInputChange('livraison_adresse1', e.target.value)}
-                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
+                          className="min-h-[48px] sm:min-h-[52px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
                           placeholder="Rue, numéro, bâtiment..."
                           required
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="livraison_adresse2" className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
-                        </Label>
-                        <Input
-                          id="livraison_adresse2"
-                          value={formData.livraison_adresse2}
-                          onChange={(e) => handleInputChange('livraison_adresse2', e.target.value)}
-                          className="h-12 border-2 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all"
-                          placeholder="Appartement, étage, etc."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="note" className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Notes de commande <span className="text-gray-400 text-xs">(optionnel)</span>
-                        </Label>
-                        <textarea
-                          id="note"
-                          value={formData.note}
-                          onChange={(e) => handleInputChange('note', e.target.value)}
-                          className="w-full min-h-[120px] p-4 border-2 border-gray-300 dark:border-gray-700 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900 transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 resize-none"
-                          placeholder="Commentaires concernant votre commande, ex. : consignes de livraison, instructions spéciales..."
-                        />
-                      </div>
+                      {showOptionalFields && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="livraison_adresse2" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
+                              Adresse ligne 2 <span className="text-gray-400 text-xs">(optionnel)</span>
+                            </Label>
+                            <Input
+                              id="livraison_adresse2"
+                              value={formData.livraison_adresse2}
+                              onChange={(e) => handleInputChange('livraison_adresse2', e.target.value)}
+                              className="min-h-[48px] text-[15px] border border-gray-200 dark:border-gray-700 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all duration-200"
+                              placeholder="Appartement, étage, etc."
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="note" className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
+                              Notes de commande <span className="text-gray-400 text-xs">(optionnel)</span>
+                            </Label>
+                            <textarea
+                              id="note"
+                              value={formData.note}
+                              onChange={(e) => handleInputChange('note', e.target.value)}
+                              className="w-full min-h-[100px] p-4 text-[15px] border border-gray-200 dark:border-gray-700 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 resize-none"
+                              placeholder="Consignes de livraison, instructions..."
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
-                    {/* Payment Method */}
-                    <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-2 mb-6">
-                        <CreditCard className="h-5 w-5 text-red-600" />
-                        <Label className="text-lg font-bold text-gray-900 dark:text-white">Méthode de paiement</Label>
-                      </div>
+                    {/* Paiement */}
+                    <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Paiement</h3>
                       <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cod' | 'card')}>
                         <div className="space-y-3">
-                          {/* Cash on Delivery */}
+                          {/* Paiement à la livraison */}
                           <label
                             htmlFor="cod"
-                            className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                            className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer min-h-[52px] ${
                               paymentMethod === 'cod'
-                                ? 'border-red-500 bg-red-50 dark:bg-red-950/20 shadow-md'
+                                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 shadow-[0_4px_16px_rgba(0,0,0,0.05)]'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800'
                             }`}
                           >
-                            <RadioGroupItem value="cod" id="cod" className="mt-1" />
+                            <RadioGroupItem value="cod" id="cod" className="mt-1.5 h-5 w-5 shrink-0" />
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
                                 <div className={`p-2 rounded-lg ${
@@ -871,19 +860,19 @@ export default function CheckoutPage() {
                             </div>
                           </label>
 
-                          {/* Card Payment */}
+                          {/* Carte Bancaire */}
                           <label
                             htmlFor="card"
-                            className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                            className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer min-h-[52px] ${
                               paymentMethod === 'card'
-                                ? 'border-red-500 bg-red-50 dark:bg-red-950/20 shadow-md'
+                                ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 shadow-[0_4px_16px_rgba(0,0,0,0.05)]'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800'
                             }`}
                           >
-                            <RadioGroupItem value="card" id="card" className="mt-1" />
-                            <div className="flex-1 w-full">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className={`p-2 rounded-lg ${
+                            <RadioGroupItem value="card" id="card" className="mt-1.5 h-5 w-5 shrink-0" />
+                            <div className="flex-1 w-full min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className={`p-2 rounded-xl shrink-0 ${
                                   paymentMethod === 'card'
                                     ? 'bg-blue-100 dark:bg-blue-900/30'
                                     : 'bg-gray-100 dark:bg-gray-700'
@@ -894,47 +883,39 @@ export default function CheckoutPage() {
                                       : 'text-gray-600 dark:text-gray-400'
                                   }`} />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                   <span className="font-semibold text-gray-900 dark:text-white block">
                                     Carte Bancaire
                                   </span>
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    Paiement sécurisé en ligne
+                                  <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                                    Paiement sécurisé SSL
                                   </span>
                                 </div>
                               </div>
-                              
-                              {/* Payment Cards Logos */}
-                              <div className="ml-11 mb-3 bg-gradient-to-r from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-lg p-3 flex items-center justify-center gap-3">
+                              <div className="flex items-center justify-start gap-2 mt-2 overflow-x-auto">
                                 <Image
                                   src="/payment card.png"
-                                  alt="Méthodes de paiement acceptées"
-                                  width={280}
-                                  height={60}
-                                  className="h-10 w-auto object-contain"
-                                  style={{ width: 'auto', height: '40px' }}
+                                  alt="Cartes acceptées"
+                                  width={200}
+                                  height={40}
+                                  className="h-8 w-auto object-contain"
                                   priority={false}
                                 />
                               </div>
 
-                              {/* Conditional Free Shipping Message */}
+                              {/* Free shipping message */}
                               {shippingCost > 0 && totalPrice < FREE_SHIPPING_THRESHOLD && (
-                                <div className="ml-11 flex items-start gap-2 p-2 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+                                <div className="mt-2 flex items-start gap-2 p-2 bg-green-50 dark:bg-green-950/20 rounded-xl border border-green-200 dark:border-green-900">
                                   <Truck className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                                  <div className="flex-1">
-                                    <p className="text-xs font-medium text-green-800 dark:text-green-200">
-                                      Livraison gratuite disponible
-                                    </p>
-                                    <p className="text-xs text-green-700 dark:text-green-300">
-                                      Ajoutez {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(0)} DT pour bénéficier de la livraison gratuite
-                                    </p>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-green-800 dark:text-green-200">Livraison gratuite disponible</p>
+                                    <p className="text-xs text-green-700 dark:text-green-300">Ajoutez {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(0)} DT pour la livraison gratuite</p>
                                   </div>
                                 </div>
                               )}
-                              
                               {shippingCost === 0 && (
-                                <div className="ml-11 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                                  <Truck className="h-4 w-4" />
+                                <div className="mt-2 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                  <Truck className="h-4 w-4 shrink-0" />
                                   <span className="font-medium">Livraison gratuite incluse</span>
                                 </div>
                               )}
@@ -944,41 +925,22 @@ export default function CheckoutPage() {
                       </RadioGroup>
                     </div>
 
-                    {/* Terms and Conditions */}
-                    <div className="flex items-start gap-3 pt-6 border-t border-gray-200 dark:border-gray-800 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                      <input
-                        type="checkbox"
-                        id="terms"
-                        required
-                        className="mt-1 h-5 w-5 rounded border-2 border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 cursor-pointer"
-                      />
-                      <Label htmlFor="terms" className="text-sm cursor-pointer text-gray-700 dark:text-gray-300 leading-relaxed">
-                        J'ai lu et j'accepte les{' '}
-                        <a href="/terms" className="text-red-600 dark:text-red-400 hover:underline font-semibold">
-                          conditions générales de vente
-                        </a>
-                        {' '}et la{' '}
-                        <a href="/privacy" className="text-red-600 dark:text-red-400 hover:underline font-semibold">
-                          politique de confidentialité
-                        </a>
-                      </Label>
-                    </div>
-
+                    {/* Desktop submit - hidden on mobile (sticky bar CTA on mobile) */}
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white h-16 text-lg font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="w-full hidden lg:flex min-h-[52px] text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-[0_4px_16px_rgba(220,38,38,0.25)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.3)] transition-all duration-200 disabled:opacity-50"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Traitement de votre commande...
+                          Traitement...
                         </>
                       ) : (
                         <>
                           <Shield className="h-5 w-5 mr-2" />
-                          Confirmer et payer
+                          Passer la commande
                         </>
                       )}
                     </Button>
@@ -988,22 +950,16 @@ export default function CheckoutPage() {
             </motion.div>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="sticky top-4"
-            >
-              <Card className="shadow-xl border-2 border-gray-200 dark:border-gray-800">
-                <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-gray-200 dark:border-gray-800">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <div className="p-2 bg-red-600 rounded-lg">
-                      <ShoppingCart className="h-5 w-5 text-white" />
-                    </div>
-                    <span>Récapitulatif</span>
+          {/* Order Summary - desktop only; mobile uses sticky bar + sheet */}
+          <div className="hidden lg:block lg:col-span-1">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-4">
+              <Card className="bg-white dark:bg-gray-900 border-0 shadow-[0_4px_16px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
+                    <ShoppingCart className="h-5 w-5 text-red-600" aria-hidden="true" />
+                    Récapitulatif
                   </CardTitle>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">
                     {items.length} {items.length === 1 ? 'article' : 'articles'}
                   </p>
                 </CardHeader>
@@ -1108,6 +1064,100 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
             </motion.div>
+          </div>
+        </div>
+
+        {/* Mobile: sticky bottom bar (Total + CTA) + summary in sheet */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-area-pb">
+          <div className="max-w-[1160px] mx-auto px-4 py-4">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400">Total</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{finalTotal.toFixed(0)} DT</p>
+              </div>
+              <Sheet open={mobileSummaryOpen} onOpenChange={setMobileSummaryOpen}>
+                <SheetTrigger asChild>
+                  <Button type="button" variant="outline" size="sm" className="text-[13px] shrink-0 min-h-[44px]">
+                    Voir le récapitulatif
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col bg-white dark:bg-gray-900">
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Récapitulatif de la commande</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto p-4 pb-8">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Récapitulatif</h3>
+                    <div className="space-y-3 mb-6">
+                      {items.map((item) => {
+                        const price = getEffectivePrice(item.product);
+                        const productName = (item.product as any).designation_fr || (item.product as any).name;
+                        const productImage = (item.product as any).cover ? getStorageUrl((item.product as any).cover) : null;
+                        return (
+                          <div key={item.product.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            {productImage && (
+                              <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
+                                <Image src={productImage} alt={productName} fill className="object-contain p-1" sizes="48px" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{productName}</p>
+                              <p className="text-xs text-gray-500">Qté: {item.quantity} · {(price * item.quantity).toFixed(0)} DT</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Sous-total</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{totalPrice.toFixed(0)} DT</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Expédition</span>
+                        <span className={shippingCost === 0 ? 'text-green-600 dark:text-green-400 font-medium' : 'font-medium text-gray-900 dark:text-white'}>
+                          {shippingCost === 0 ? 'Gratuite' : `${shippingCost} DT`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-gray-900 dark:text-white">Total</span>
+                        <span className="text-red-600 dark:text-red-400">{finalTotal.toFixed(0)} DT</span>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            <Button
+              type="button"
+              onClick={() => (document.getElementById('checkout-form') as HTMLFormElement | null)?.requestSubmit()}
+              disabled={isSubmitting}
+              className="w-full min-h-[52px] text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-[0_4px_16px_rgba(220,38,38,0.25)] transition-all duration-200 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
+                  Traitement...
+                </>
+              ) : (
+                <>
+                  <Shield className="h-5 w-5 mr-2" aria-hidden="true" />
+                  Passer la commande
+                </>
+              )}
+            </Button>
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-3 text-center flex items-center justify-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" /> Paiement sécurisé</span>
+              <span>·</span>
+              <span><Truck className="h-3 w-3 inline mr-0.5" /> Livraison</span>
+              <span>·</span>
+              <a href="tel:+21627612500" className="inline-flex items-center gap-1 hover:text-red-600">
+                <Phone className="h-3 w-3" /> 27 612 500
+              </a>
+              <span>·</span>
+              <a href="https://wa.me/21627612500" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-green-600">
+                <MessageCircle className="h-3 w-3" /> WhatsApp
+              </a>
+            </p>
           </div>
         </div>
       </main>

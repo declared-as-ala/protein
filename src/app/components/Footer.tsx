@@ -58,11 +58,11 @@ export function Footer() {
   return (
     <footer id="contact" className="bg-gray-950 text-gray-300 border-t border-gray-800/60 md:bg-gradient-to-b md:from-gray-900 md:via-gray-950 md:to-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-16">
-        {/* Mobile: Stacked layout, all content visible, premium e‑commerce style */}
-        <div className="md:hidden flex flex-col gap-8 pb-2">
-          {/* Logo + tagline */}
-          <div className="space-y-4">
-            <div className="relative h-12 w-auto mb-8 shrink-0">
+        {/* Mobile: Single-column stacked layout like reference (Suivez-nous → Abonnez-vous → Contact → Services → Navigation) */}
+        <div className="md:hidden flex flex-col gap-6 sm:gap-8 pb-4 w-full max-w-full overflow-hidden">
+          {/* 1. Logo + tagline */}
+          <div className="space-y-3 w-full">
+            <div className="relative h-12 w-auto mb-6 shrink-0">
               <Image
                 src="https://admin.protein.tn/storage/coordonnees/September2023/OXC3oL0LreP3RCsgR3k6.webp"
                 alt="Protein.tn"
@@ -73,100 +73,112 @@ export function Footer() {
                 priority
               />
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed mt-2">
+            <p className="text-sm text-gray-400 leading-relaxed">
               PROTEINE TUNISIE - SOBITAS votre distributeur officiel d&apos;articles de sport et de compléments alimentaires en Tunisie.
             </p>
           </div>
 
-          {/* Navigation */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-white text-base">Navigation</h3>
-            <ul className="space-y-2">
-              <li><a href="/" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Accueil</a></li>
-              <li><a href="#products" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Nos produits</a></li>
-              <li><a href="#packs" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Packs</a></li>
-              <li><a href="#blog" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Blog</a></li>
-              <li><a href="#contact" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Contact</a></li>
-            </ul>
-          </div>
+          <div className="h-px bg-gray-800/80 w-full" aria-hidden="true" />
 
-          <div className="h-px bg-gray-800/80" aria-hidden="true" />
-
-          {/* Services */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-white text-base">Services & Ventes</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Conditions générales</a></li>
-              <li><a href="#" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Politique de remboursement</a></li>
-              <li><a href="#" className="block py-2.5 text-sm text-gray-400 hover:text-red-500 active:text-red-500">À propos</a></li>
-            </ul>
-          </div>
-
-          <div className="h-px bg-gray-800/80" aria-hidden="true" />
-
-          {/* Contact + Social */}
-          <div className="space-y-4">
-            <h3 className="font-bold text-white text-base">Contact</h3>
-            <div className="space-y-3">
-              <a href="tel:+21673200500" className="flex items-center gap-3 py-2 text-sm text-gray-400 hover:text-red-500" aria-label="Appeler">
-                <Phone className="h-5 w-5 text-red-500 shrink-0" />
-                <span>+216 73 200 500 / +216 73 200 169</span>
+          {/* 2. Suivez-nous (social first, like reference) */}
+          <div className="space-y-3 w-full">
+            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Suivez-nous</h3>
+            <p className="text-sm text-gray-400">
+              Nous facilitons la communication et le suivi sur nos réseaux sociaux.
+            </p>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <a href="https://www.facebook.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gray-800 hover:bg-[#1877F2] flex items-center justify-center transition-colors shrink-0" aria-label="Facebook">
+                <Facebook className="h-5 w-5" />
               </a>
-              <a href="mailto:contact@protein.tn" className="flex items-center gap-3 py-2 text-sm text-gray-400 hover:text-red-500">
+              <a href="https://www.instagram.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gray-800 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 flex items-center justify-center transition-colors shrink-0" aria-label="Instagram">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="https://twitter.com/TunisieProteine" target="_blank" rel="noopener noreferrer" className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gray-800 hover:bg-[#1DA1F2] flex items-center justify-center transition-colors shrink-0" aria-label="Twitter">
+                <Twitter className="h-5 w-5" />
+              </a>
+              <a href="https://wa.me/21627612500" target="_blank" rel="noopener noreferrer" className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gray-800 hover:bg-[#25D366] flex items-center justify-center transition-colors shrink-0" aria-label="WhatsApp">
+                <MessageCircle className="h-5 w-5" />
+              </a>
+            </div>
+          </div>
+
+          <div className="h-px bg-gray-800/80 w-full" aria-hidden="true" />
+
+          {/* 3. Abonnez-vous (newsletter) - input + button row on small screens */}
+          <div className="space-y-3 w-full">
+            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Abonnez-vous</h3>
+            <p className="text-sm text-gray-400">
+              Rejoignez nos abonnés et recevez les nouveautés et offres chaque semaine.
+            </p>
+            <form onSubmit={handleNewsletterSubmit} className="space-y-3 w-full">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <Input
+                  type="email"
+                  placeholder="Entrez votre email..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="flex-1 min-w-0 bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-500 h-11 sm:h-12 rounded-xl text-sm sm:text-base"
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="h-11 sm:h-12 px-6 font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg shrink-0"
+                  disabled={isSubscribing}
+                >
+                  {isSubscribing ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> ...</>) : "S'abonner"}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">En vous abonnant, vous acceptez de recevoir nos offres par email.</p>
+            </form>
+          </div>
+
+          <div className="h-px bg-gray-800/80 w-full" aria-hidden="true" />
+
+          {/* 4. Contact info */}
+          <div className="space-y-3 w-full">
+            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Contact</h3>
+            <div className="space-y-2 text-sm text-gray-400">
+              <a href="tel:+21627612500" className="flex items-center gap-3 py-1.5 hover:text-red-500 min-w-0" aria-label="Appeler">
+                <Phone className="h-5 w-5 text-red-500 shrink-0" />
+                <span className="break-words">+216 27 612 500 / +216 73 200 169</span>
+              </a>
+              <a href="mailto:contact@protein.tn" className="flex items-center gap-3 py-1.5 hover:text-red-500 min-w-0">
                 <Mail className="h-5 w-5 text-red-500 shrink-0" />
                 <span>contact@protein.tn</span>
               </a>
-              <div className="flex items-start gap-3 py-2 text-sm text-gray-400">
+              <div className="flex items-start gap-3 py-1.5 min-w-0">
                 <MapPin className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                <span>Rue Rihab, 4000 Sousse, Tunisie</span>
-              </div>
-            </div>
-            <div>
-              <p className="font-bold text-white text-base mb-3">Suivez-nous</p>
-              <div className="flex flex-wrap gap-3">
-                <a href="https://www.facebook.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-11 w-11 rounded-full bg-gray-800 hover:bg-[#1877F2] flex items-center justify-center transition-colors" aria-label="Facebook">
-                  <Facebook className="h-5 w-5" />
-                </a>
-                <a href="https://www.instagram.com/sobitass/" target="_blank" rel="noopener noreferrer" className="h-11 w-11 rounded-full bg-gray-800 hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 flex items-center justify-center transition-colors" aria-label="Instagram">
-                  <Instagram className="h-5 w-5" />
-                </a>
-                <a href="https://twitter.com/TunisieProteine" target="_blank" rel="noopener noreferrer" className="h-11 w-11 rounded-full bg-gray-800 hover:bg-[#1DA1F2] flex items-center justify-center transition-colors" aria-label="Twitter">
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a href="https://wa.me/21627612500" target="_blank" rel="noopener noreferrer" className="h-11 w-11 rounded-full bg-gray-800 hover:bg-[#25D366] flex items-center justify-center transition-colors" aria-label="WhatsApp">
-                  <MessageCircle className="h-5 w-5" />
-                </a>
+                <span className="break-words">Rue Rihab, 4000 Sousse, Tunisie</span>
               </div>
             </div>
           </div>
 
-          <div className="h-px bg-gray-800/80" aria-hidden="true" />
+          <div className="h-px bg-gray-800/80 w-full" aria-hidden="true" />
 
-          {/* Newsletter - prominent CTA */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-400 shrink-0" />
-              <h3 className="font-bold text-white text-base">Abonnez-vous</h3>
-            </div>
-            <p className="text-sm text-gray-400">Recevez les dernières offres exclusives et nouveautés</p>
-            <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-              <Input
-                type="email"
-                placeholder="Votre email..."
-                value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
-                className="bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-500 h-12 rounded-xl text-base"
-                required
-              />
-              <Button
-                type="submit"
-                className="w-full h-12 font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg"
-                disabled={isSubscribing}
-              >
-                {isSubscribing ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Inscription...</>) : "S'abonner"}
-              </Button>
-            </form>
-            <p className="text-xs text-gray-500">En vous abonnant, vous acceptez de recevoir nos offres par email</p>
+          {/* 5. Services & Ventes */}
+          <div className="space-y-3 w-full">
+            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Services & Ventes</h3>
+            <ul className="space-y-1.5">
+              <li><a href="#" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Conditions générales de vente</a></li>
+              <li><a href="#" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Politique de remboursement</a></li>
+              <li><a href="#" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Mentions légales</a></li>
+              <li><a href="#" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Politique des cookies</a></li>
+              <li><a href="#" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Qui sommes nous ?</a></li>
+            </ul>
+          </div>
+
+          <div className="h-px bg-gray-800/80 w-full" aria-hidden="true" />
+
+          {/* 6. Navigation */}
+          <div className="space-y-3 w-full">
+            <h3 className="font-bold text-white text-sm uppercase tracking-wide">Navigation</h3>
+            <ul className="space-y-1.5">
+              <li><a href="/" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Accueil</a></li>
+              <li><a href="#products" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Nos produits</a></li>
+              <li><a href="#packs" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Packs</a></li>
+              <li><a href="#blog" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Blog</a></li>
+              <li><a href="#contact" className="block py-2 text-sm text-gray-400 hover:text-red-500 active:text-red-500">Contact</a></li>
+            </ul>
           </div>
         </div>
 
@@ -191,9 +203,9 @@ export function Footer() {
             
             {/* Contact Details */}
             <div className="space-y-3">
-              <a href="tel:+21673200500" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors" aria-label="Appeler au +216 73 200 500">
+              <a href="tel:+21627612500" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors" aria-label="Appeler au +216 27 612 500">
                 <Phone className="h-5 w-5 text-red-500" aria-hidden="true" />
-                <span>+216 73 200 500 / +216 73 200 169</span>
+                <span>+216 27 612 500 / +216 73 200 169</span>
               </a>
               <a href="mailto:contact@protein.tn" className="flex items-center gap-3 text-sm hover:text-red-500 transition-colors">
                 <Mail className="h-5 w-5 text-red-500" />

@@ -52,43 +52,43 @@ function ReviewCard({
     : '?';
 
   return (
-    <article className="p-6 md:p-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-      <div className="flex gap-5">
-        <div className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-base md:text-lg font-semibold text-gray-600 dark:text-gray-300">
+    <article className="p-4 sm:p-6 md:p-8 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm min-w-0">
+      <div className="flex gap-3 sm:gap-5">
+        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm sm:text-base md:text-lg font-semibold text-gray-600 dark:text-gray-300">
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="font-bold text-base md:text-lg text-gray-900 dark:text-white">{review.user?.name || 'Client'}</span>
-            <span className="text-gray-400 dark:text-gray-500">•</span>
-            <span className="text-sm md:text-base text-gray-500 dark:text-gray-400">{dateStr}</span>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+            <span className="font-bold text-sm sm:text-base md:text-lg text-gray-900 dark:text-white truncate">{review.user?.name || 'Client'}</span>
+            <span className="text-gray-400 dark:text-gray-500 shrink-0">•</span>
+            <span className="text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400">{dateStr}</span>
           </div>
-          <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star
                 key={i}
-                className={`h-5 w-5 md:h-6 md:w-6 ${i <= review.stars ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
+                className={`h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 shrink-0 ${i <= review.stars ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
               />
             ))}
-            <span className="text-base font-medium text-gray-700 dark:text-gray-300 ml-1">{review.stars}/5</span>
+            <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 ml-1">{review.stars}/5</span>
           </div>
           {comment && (
             <>
-              <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
                 {displayComment}
               </p>
               {isLong && (
                 <button
                   type="button"
                   onClick={onToggleComment}
-                  className="text-base text-red-600 dark:text-red-400 font-medium mt-2 hover:underline"
+                  className="text-sm sm:text-base text-red-600 dark:text-red-400 font-medium mt-2 hover:underline min-h-[44px]"
                 >
                   {showFullComment ? 'Voir moins' : 'Voir plus'}
                 </button>
               )}
             </>
           )}
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">Avis à titre informatif, non médical.</p>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-3 sm:mt-4">Avis à titre informatif, non médical.</p>
         </div>
       </div>
     </article>
@@ -198,62 +198,62 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Breadcrumb */}
-        <nav className="mb-6 text-sm">
+        <nav className="mb-4 sm:mb-6 text-sm min-w-0">
           <Link
             href={`/products/${product.slug}`}
-            className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+            className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 min-h-[44px] items-center break-words"
           >
-            <ChevronLeft className="h-4 w-4" />
-            {product.designation_fr}
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            <span className="line-clamp-2">{product.designation_fr}</span>
           </Link>
         </nav>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 lg:mb-8 px-1">
           Avis clients
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
           {/* Left sidebar – rating, filters, write review */}
-          <aside className="lg:col-span-4 space-y-6">
-            <div className="p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+          <aside className="lg:col-span-4 space-y-4 sm:space-y-6 min-w-0">
+            <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium mb-4">
                 <Shield className="h-5 w-5" />
                 <span>Avis vérifiés</span>
               </div>
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                <span className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                   {rating > 0 ? rating.toFixed(1) : '–'}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400">/ 5</span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">/ 5</span>
               </div>
               <div className="flex items-center gap-1 mb-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star
                     key={i}
-                    className={`h-6 w-6 ${i <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
+                    className={`h-5 w-5 sm:h-6 sm:w-6 shrink-0 ${i <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
                   />
                 ))}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Basé sur {reviewCount} avis
               </p>
 
               {/* Rating breakdown */}
-              <div className="mt-6 space-y-2">
+              <div className="mt-4 sm:mt-6 space-y-2">
                 {([5, 4, 3, 2, 1] as const).map((star) => {
                   const count = starCounts[star] ?? 0;
                   const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
                   return (
-                    <div key={star} className="flex items-center gap-2">
+                    <div key={star} className="flex items-center gap-2 min-w-0">
                       <button
                         type="button"
                         onClick={() => toggleStarFilter(star)}
-                        className="flex items-center gap-1 w-16 text-left"
+                        className="flex items-center gap-1 w-14 sm:w-16 text-left min-h-[44px] shrink-0"
                       >
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{star}</span>
-                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">{star}</span>
+                        <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
                       </button>
                       <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
@@ -278,44 +278,45 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
               )}
 
               <div className="mt-4 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                 <Input
                   value={reviewSearch}
                   onChange={(e) => setReviewSearch(e.target.value)}
-                  placeholder="Rechercher dans les avis..."
-                  className="pl-9"
+                  placeholder="Rechercher..."
+                  className="pl-9 min-h-[44px] text-sm sm:text-base"
                 />
               </div>
             </div>
 
             {/* Write review form */}
             {showReviewForm && isAuthenticated && (
-              <div className="p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3">Votre avis</h3>
+              <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 min-w-0">
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-3">Votre avis</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Note *</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-2">Note *</label>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
                           onClick={() => setReviewStars(star)}
-                          className="focus:outline-none"
+                          className="focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
                         >
                           <Star
-                            className={`h-8 w-8 ${star <= reviewStars ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
+                            className={`h-7 w-7 sm:h-8 sm:w-8 ${star <= reviewStars ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 dark:fill-gray-700'}`}
                           />
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Commentaire (optionnel)</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1">Commentaire (optionnel)</label>
                     <textarea
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value.slice(0, 500))}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                      className="w-full min-w-0 p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                       rows={4}
                       placeholder="Partagez votre expérience..."
                       maxLength={500}
@@ -338,16 +339,17 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
             )}
 
             {/* Star filter checkboxes */}
-            <div className="p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Filtrer par note</h3>
+            <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-3">Filtrer par note</h3>
               <div className="space-y-2">
                 {([5, 4, 3, 2, 1] as const).map((star) => (
-                  <label key={star} className="flex items-center gap-2 cursor-pointer">
+                  <label key={star} className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                     <Checkbox
                       checked={starFilter.includes(star)}
                       onCheckedChange={() => toggleStarFilter(star)}
+                      className="shrink-0"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
                       {star} étoile{star > 1 ? 's' : ''} ({starCounts[star] ?? 0})
                     </span>
                   </label>
@@ -357,13 +359,13 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
           </aside>
 
           {/* Main – sort, top reviews, list */}
-          <div className="lg:col-span-8 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="lg:col-span-8 space-y-4 sm:space-y-6 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Tous les avis ({filteredReviews.length})
               </h2>
               <Select value={reviewSort} onValueChange={(v: 'recent' | 'highest' | 'lowest') => setReviewSort(v)}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
                   <SelectValue placeholder="Trier par" />
                 </SelectTrigger>
                 <SelectContent>
@@ -376,12 +378,12 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
 
             {/* Top positive / Top critical */}
             {(topPositive || topCritical) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
                 {topPositive && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-6 md:p-7 bg-green-50 dark:bg-green-950/30 rounded-2xl border-2 border-green-200 dark:border-green-900/50 shadow-sm"
+                    className="p-4 sm:p-6 md:p-7 bg-green-50 dark:bg-green-950/30 rounded-xl sm:rounded-2xl border-2 border-green-200 dark:border-green-900/50 shadow-sm min-w-0"
                   >
                     <p className="text-sm font-bold text-green-700 dark:text-green-400 uppercase tracking-wide mb-3">
                       Avis le plus positif
@@ -398,7 +400,7 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="p-6 md:p-7 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border-2 border-amber-200 dark:border-amber-900/50 shadow-sm"
+                    className="p-4 sm:p-6 md:p-7 bg-amber-50 dark:bg-amber-950/30 rounded-xl sm:rounded-2xl border-2 border-amber-200 dark:border-amber-900/50 shadow-sm min-w-0"
                   >
                     <p className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-3">
                       Avis le plus critique
@@ -413,8 +415,8 @@ export function ProductReviewsPageClient({ product }: ProductReviewsPageClientPr
               </div>
             )}
 
-            {/* Review list – all avis in one scrollable list (no pagination) */}
-            <div className="space-y-5">
+            {/* Review list */}
+            <div className="space-y-3 sm:space-y-5">
               {filteredReviews.length === 0 ? (
                 <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
                   <p className="text-gray-600 dark:text-gray-400">Aucun avis ne correspond à vos filtres.</p>

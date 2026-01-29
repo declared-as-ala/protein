@@ -128,17 +128,17 @@ export function BlogPageClient({ articles }: BlogPageClientProps) {
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
         {/* Hero title – centered, GreenFacts-style */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">
             Blog
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-6 sm:mb-8">
             Conseils, guides et actualités nutrition sportive & compléments alimentaires
           </p>
 
@@ -166,8 +166,8 @@ export function BlogPageClient({ articles }: BlogPageClientProps) {
           </div>
         ) : (
           <>
-            {/* 3-column grid – cards with image, title, excerpt, date, reading time */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {/* 2 cols on mobile/tablet, 3 on desktop – responsive cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
               {paginatedArticles.map((article, index) => {
                 const articleDate = article.created_at ? new Date(article.created_at) : new Date();
                 const excerpt = getExcerpt(article);
@@ -181,7 +181,7 @@ export function BlogPageClient({ articles }: BlogPageClientProps) {
                     className="group"
                   >
                     <Link href={`/blog/${article.slug}`} className="block h-full">
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-lg hover:border-red-500/30 dark:hover:border-red-500/30 transition-all duration-300 h-full flex flex-col">
+                      <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-lg hover:border-red-500/30 dark:hover:border-red-500/30 transition-all duration-300 h-full flex flex-col">
                         <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                           {article.cover ? (
                             <Image
@@ -189,29 +189,29 @@ export function BlogPageClient({ articles }: BlogPageClientProps) {
                               alt={article.designation_fr}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-400"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                               loading="lazy"
                             />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-red-600 to-red-800" />
                           )}
                         </div>
-                        <div className="p-5 md:p-6 flex flex-col flex-1">
-                          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                        <div className="p-3 sm:p-5 md:p-6 flex flex-col flex-1 min-w-0">
+                          <h2 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white mb-1.5 sm:mb-3 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                             {article.designation_fr}
                           </h2>
                           {excerpt && (
-                            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3 mb-4 flex-1">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-4 flex-1">
                               {excerpt}
                             </p>
                           )}
-                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
-                            <span className="flex items-center gap-1.5">
-                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                          <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-auto flex-wrap">
+                            <span className="flex items-center gap-1 sm:gap-1.5">
+                              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                               {format(articleDate, 'd MMM yyyy', { locale: fr })}
                             </span>
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="h-4 w-4 flex-shrink-0" />
+                            <span className="flex items-center gap-1 sm:gap-1.5">
+                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                               {readingMin} min
                             </span>
                           </div>

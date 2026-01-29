@@ -242,7 +242,7 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           )}
         </div>
 
-        {/* Add to Cart - one CTA; compact: always show on mobile for touch, min 44px */}
+        {/* Add to Cart - mobile only: short "Ajouter" button; desktop uses hover overlay with "Ajouter au panier" */}
         <Button
           size="sm"
           className={`w-full min-h-[44px] ${productData.isInStock ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'} text-white hidden [@media(hover:none)]:inline-flex ${isCompact ? 'text-xs' : ''}`}
@@ -251,7 +251,7 @@ export const ProductCard = memo(function ProductCard({ product, showBadge, badge
           aria-label={`Ajouter ${productData.name} au panier`}
         >
           <ShoppingCart className={`shrink-0 mr-1.5 ${isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4 mr-2'}`} aria-hidden="true" />
-          {!productData.isInStock ? 'Rupture' : isAdding ? 'Ajouté !' : isCompact ? 'Ajouter' : 'Ajouter au panier'}
+          {!productData.isInStock ? 'Rupture' : isAdding ? 'Ajouté !' : 'Ajouter'}
         </Button>
       </div>
 

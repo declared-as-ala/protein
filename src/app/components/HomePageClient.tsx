@@ -99,7 +99,7 @@ export function HomePageClient({ accueil, slides }: HomePageClientProps) {
   }, [accueil.ventes_flash, transformProduct]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white dark:bg-gray-950">
       <PremiumTopBar />
       <Header />
       

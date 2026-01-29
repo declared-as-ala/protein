@@ -135,11 +135,11 @@ export function Header() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {/* Desktop: open cart drawer from the right. Mobile: link to cart page (no popup). */}
+                {/* Cart: open drawer on all screen sizes (mobile + desktop); from drawer user can go to cart page or checkout */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px] md:flex hidden"
+                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px]"
                   onClick={() => setCartDrawerOpen(true)}
                   aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}
                 >
@@ -154,26 +154,6 @@ export function Header() {
                       {cartItemsCount}
                     </motion.span>
                   )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors h-10 w-10 min-h-[48px] min-w-[48px] md:hidden"
-                  asChild
-                >
-                  <Link href="/cart" aria-label={`Panier${cartItemsCount > 0 ? ` avec ${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''}` : ''}`}>
-                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                    {cartItemsCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg"
-                        aria-label={`${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''} dans le panier`}
-                      >
-                        {cartItemsCount}
-                      </motion.span>
-                    )}
-                  </Link>
                 </Button>
               </motion.div>
 

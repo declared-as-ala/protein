@@ -152,18 +152,28 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             </div>
             <div className="flex flex-col gap-2.5">
               <DrawerClose asChild>
-                <Link href="/cart" className="block">
+                <Link href="/checkout" className="block">
                   <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold h-12 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                    AFFICHER VOTRE PANIER
+                    Passer commande
+                  </Button>
+                </Link>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Link href="/cart" className="block">
+                  <Button
+                    variant="outline"
+                    className="w-full border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 dark:border-red-500 dark:text-red-400 h-11 rounded-xl font-medium"
+                  >
+                    Voir le panier
                   </Button>
                 </Link>
               </DrawerClose>
               <DrawerClose asChild>
                 <Button
-                  variant="outline"
-                  className="w-full border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 dark:border-red-500 dark:text-red-400 h-11 rounded-xl font-medium"
+                  variant="ghost"
+                  className="w-full text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 h-11 rounded-xl font-medium"
                 >
-                  CONTINUER MES ACHATS
+                  Continuer mes achats
                 </Button>
               </DrawerClose>
             </div>

@@ -14,7 +14,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+ENV NODE_OPTIONS=--no-deprecation
+RUN npx next build
 
 FROM base AS runner
 WORKDIR /app

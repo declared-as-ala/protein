@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--no-deprecation next dev",
-    "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "dev": "node init && cross-env NODE_ENV=development NODE_OPTIONS=--no-deprecation next dev",
+    "build": "node init && cross-env NODE_OPTIONS=--no-deprecation next build",
+    "start": "node init && cross-env NODE_OPTIONS=--no-deprecation next start",
     "lint": "next lint"
   },
   "dependencies": {

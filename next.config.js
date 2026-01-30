@@ -11,6 +11,7 @@ const nextConfig = {
     ];
   },
   images: {
+    domains: ['admin.sobitas.tn', 'admin.protein.tn'],
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'admin.protein.tn' },

@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -o",
-    "build": "ng build  && tar -zcvf archive.tar.gz dist/ng16/*",
+    "start": "node init && ng serve -o",
+    "build": "node init && ng build  && tar -zcvf archive.tar.gz dist/ng16/*",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "dev:ssr": "ng run ng16:serve-ssr",
+    "dev:ssr": "node init && ng run ng16:serve-ssr",
     "serve:ssr": "node dist/ng16/server/main.js",
-    "build:ssr": "ng build && ng run ng16:server",
+    "build:ssr": "node init && ng build && ng run ng16:server",
     "prerender": "ng run ng16:prerender"
   },
   "private": true,

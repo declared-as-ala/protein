@@ -1,7 +1,15 @@
 /** @type {import('next').NextConfig} */
+const API_BACKEND_URL = process.env.API_BACKEND_URL || 'https://admin.sobitas.tn/api';
+
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  // Proxy API when NEXT_PUBLIC_API_URL points to /api-proxy (avoids CORS and server→API connectivity on protein.tn)
+  async rewrites() {
+    return [
+      { source: '/api-proxy/:path*', destination: `${API_BACKEND_URL.replace(/\/$/, '')}/:path*` },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },

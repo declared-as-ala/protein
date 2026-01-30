@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Production: build then run next start (do NOT use next dev on server)
+# Production: build then run node server.js (do NOT use next dev on server)
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 ENV NODE_ENV=production
@@ -8,7 +8,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 FROM base AS builder
 WORKDIR /app
